@@ -19,16 +19,19 @@ repositories {
 }
 
 dependencies {
+    // This dependency is used by the application.
+    implementation(libs.guava)
+
+    // https://www.kodeco.com/5777183-write-an-aws-lambda-function-with-kotlin-and-micronaut
+    implementation("com.amazonaws:aws-lambda-java-core:1.2.3") // lambda 배포를 위한 라이브러리
+
+
     // Use the Kotlin JUnit 5 integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is used by the application.
-    implementation(libs.guava)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
