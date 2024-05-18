@@ -11,6 +11,14 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+
+    /**
+     * 종속성과 프로젝트 코드를 단일 jar로 패키징하는 shadow plugin
+     * 예제에서는 5.2.0 버전이었지만 최신버전으로 등록하니 된다
+     *
+     * https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
+     */
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -18,13 +26,14 @@ repositories {
     mavenCentral()
 }
 
+val awsJavaLambdaCoreVersion = "1.2.3"
+
 dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
     // https://www.kodeco.com/5777183-write-an-aws-lambda-function-with-kotlin-and-micronaut
-    implementation("com.amazonaws:aws-lambda-java-core:1.2.3") // lambda 배포를 위한 라이브러리
-
+    implementation("com.amazonaws:aws-lambda-java-core:$awsJavaLambdaCoreVersion") // lambda 배포를 위한 라이브러리 (kotlin도 lambda-java를 사용)
 
     // Use the Kotlin JUnit 5 integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
