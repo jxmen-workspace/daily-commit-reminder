@@ -3,13 +3,21 @@
  */
 package org.example
 
-class App {
-    val greeting: String
-        get() {
-            return "Hello World!"
-        }
+import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.lambda.runtime.RequestHandler
+import org.example.dto.HandlerOutput
+
+class App: RequestHandler<Any?, HandlerOutput> {
+
+    fun hello(): String {
+        return "Hello"
+    }
+
+    override fun handleRequest(input: Any?, context: Context?): HandlerOutput {
+        return HandlerOutput(message = "hello")
+    }
 }
 
 fun main() {
-    println(App().greeting)
+    println(App().hello())
 }
