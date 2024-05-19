@@ -10,9 +10,9 @@ import org.example.dto.HandlerOutput
 
 class App: RequestHandler<HandlerInput, HandlerOutput> {
 
-    override fun handleRequest(input: HandlerInput?, context: Context): HandlerOutput {
+    override fun handleRequest(input: HandlerInput, context: Context): HandlerOutput {
         val logger = context.logger
-        input?.message?.let { logger.log("received input message: $it") }
+        input.message.let { logger.log("received input message: '$it'") }
 
         logger.log("hello!")
 
