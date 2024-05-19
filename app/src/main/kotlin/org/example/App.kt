@@ -5,13 +5,16 @@ package org.example
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
+import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
 
-class App: RequestHandler<Any, HandlerOutput> {
+class App: RequestHandler<HandlerInput, HandlerOutput> {
 
-    override fun handleRequest(input: Any, context: Context): HandlerOutput {
+    override fun handleRequest(input: HandlerInput?, context: Context): HandlerOutput {
         val logger = context.logger
-        logger.log("hello")
+        input?.message?.let { logger.log("received input message: $it") }
+
+        logger.log("hello!")
 
         return HandlerOutput(message = "hello")
     }

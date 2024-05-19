@@ -3,6 +3,11 @@
  */
 package org.example
 
+import com.amazonaws.services.lambda.runtime.ClientContext
+import com.amazonaws.services.lambda.runtime.CognitoIdentity
+import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.lambda.runtime.LambdaLogger
+import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,10 +17,65 @@ class AppTest {
 
     @Test
     fun `handleRequest 메서드는 어떠한 값을 넣어도 hello 메시지가 리턴된다`() {
-        assertEquals(
-            HandlerOutput("hello"), app.handleRequest(
-                null, null
-            )
-        )
+        val stubContext = getStubContext()
+
+        val actual = app.handleRequest(input = HandlerInput("hi"), context = stubContext)
+
+        assertEquals(HandlerOutput("hello"), actual)
+    }
+
+    private fun getStubContext() = object : Context {
+        override fun getAwsRequestId(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getLogGroupName(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getLogStreamName(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getFunctionName(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getFunctionVersion(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getInvokedFunctionArn(): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun getIdentity(): CognitoIdentity {
+            TODO("Not yet implemented")
+        }
+
+        override fun getClientContext(): ClientContext {
+            TODO("Not yet implemented")
+        }
+
+        override fun getRemainingTimeInMillis(): Int {
+            TODO("Not yet implemented")
+        }
+
+        override fun getMemoryLimitInMB(): Int {
+            TODO("Not yet implemented")
+        }
+
+        override fun getLogger(): LambdaLogger {
+            return object : LambdaLogger {
+                override fun log(message: String?) {
+                    println(message)
+                }
+
+                override fun log(message: ByteArray?) {
+                    println(message)
+                }
+            }
+        }
     }
 }
+
