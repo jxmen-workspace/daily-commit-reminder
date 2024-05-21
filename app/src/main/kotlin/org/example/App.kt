@@ -13,7 +13,7 @@ import org.example.dto.HandlerOutput
 import org.example.messenger.Messenger
 import org.example.messenger.TelegramMessenger
 import org.example.support.logger.ConsoleLogger
-import org.example.support.logger.LambdaLoggerWrapper
+import org.example.support.logger.LambdaLoggerAdapter
 
 class App(
     private val messenger: Messenger =
@@ -31,7 +31,7 @@ class App(
         input.message.let { logger.log("received input message: '$it'") }
 
         logger.log("start sending message")
-        messenger.sendMessage(text = "hello", logger = LambdaLoggerWrapper(logger))
+        messenger.sendMessage(text = "hello", logger = LambdaLoggerAdapter(logger))
         logger.log("sending message completed")
 
         return HandlerOutput(message = "hello")
