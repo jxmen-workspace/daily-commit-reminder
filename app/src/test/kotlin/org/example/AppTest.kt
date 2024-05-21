@@ -9,6 +9,7 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
+import org.example.github.GitHubApiClient
 import org.example.messenger.Messenger
 import org.example.support.logger.Logger
 import org.junit.jupiter.api.BeforeEach
@@ -33,11 +34,22 @@ class AppTest {
         app =
             App(
                 messenger = dummyMessenger,
+                gitHubApiClient =
+                    object : GitHubApiClient(
+                        page = 1,
+                        perPage = 30,
+                        username = "dummy",
+                        token = "dummy",
+                    ) {
+                        override fun getTodayCommitCount(logger: Logger): Int {
+                            return 1
+                        }
+                    },
             )
     }
 
     @Test
-    fun `handleRequest 메서드는 어떠한 값을 넣어도 hello 메시지가 리턴된다`() {
+    fun `handleRequest 메서드는 성공 메시지와 커밋 수를 리턴한다`() {
         val consoleLoggerContext = createConsoleLoggerContext()
 
         val actual =
@@ -46,7 +58,7 @@ class AppTest {
                 context = consoleLoggerContext,
             )
 
-        assertEquals(HandlerOutput("hello"), actual)
+        assertEquals(HandlerOutput(message = "success.", todayCommitCount = 1), actual)
     }
 
     private fun createConsoleLoggerContext() =

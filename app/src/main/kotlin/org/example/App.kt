@@ -36,6 +36,8 @@ class App(
         input: HandlerInput,
         context: Context,
     ): HandlerOutput {
+        validateSeoulTimezone()
+
         val logger = context.logger
         val lambdaLoggerAdapter = LambdaLoggerAdapter(logger)
 
@@ -44,7 +46,17 @@ class App(
         messenger.sendMessage(text = todayCommitCount.toString(), logger = lambdaLoggerAdapter)
         logger.log("sending message completed")
 
-        return HandlerOutput(message = "hello")
+        return HandlerOutput(
+            message = "success.",
+            todayCommitCount = todayCommitCount,
+        )
+    }
+
+    private fun validateSeoulTimezone() {
+        when (System.getenv("TZ")) {
+            "Asia/Seoul" -> return
+            else -> throw IllegalArgumentException("Timezone must be set to 'Asia/Seoul'")
+        }
     }
 }
 
