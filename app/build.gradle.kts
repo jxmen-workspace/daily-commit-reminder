@@ -28,6 +28,7 @@ repositories {
 
 val awsJavaLambdaCoreVersion = "1.2.3"
 val telegramBotVersion = "6.9.7.1"
+val okHttpVersion = "4.12.0"
 
 dependencies {
     // This dependency is used by the application.
@@ -36,6 +37,7 @@ dependencies {
     // https://www.kodeco.com/5777183-write-an-aws-lambda-function-with-kotlin-and-micronaut
     implementation("com.amazonaws:aws-lambda-java-core:$awsJavaLambdaCoreVersion") // lambda 배포를 위한 라이브러리 (kotlin도 lambda-java를 사용)
     implementation("org.telegram:telegrambots:$telegramBotVersion")
+    implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
 
     // Use the Kotlin JUnit 5 integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
