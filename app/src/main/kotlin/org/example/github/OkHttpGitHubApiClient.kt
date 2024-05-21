@@ -43,7 +43,6 @@ class OkHttpGitHubApiClient(
     }
 
     override fun getTodayCommitCount(logger: Logger): Int {
-        // init about api request variables
         var todayCommitEventCounts = 0
 
         logger.log("Start Fetching GitHub API")

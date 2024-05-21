@@ -38,13 +38,11 @@ class App(
     ): HandlerOutput {
         validateSeoulTimezone()
 
-        val logger = context.logger
-        val lambdaLoggerAdapter = LambdaLoggerAdapter(logger)
+        val lambdaLogger = context.logger
+        val lambdaLoggerAdapter = LambdaLoggerAdapter(lambdaLogger)
 
         val todayCommitCount = gitHubApiClient.getTodayCommitCount(logger = lambdaLoggerAdapter)
-        logger.log("start sending message")
         messenger.sendMessage(text = todayCommitCount.toString(), logger = lambdaLoggerAdapter)
-        logger.log("sending message completed")
 
         return HandlerOutput(
             message = "success.",
