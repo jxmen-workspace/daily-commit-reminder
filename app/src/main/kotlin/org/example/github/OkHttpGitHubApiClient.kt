@@ -51,7 +51,9 @@ class OkHttpGitHubApiClient(
         logger.log("Start Fetching GitHub API")
         while (true) {
             logger.log("Fetching GitHub API page: $page")
-            val events: List<GitHubPublicEventOfaUser> = fetchUserEvents(page = page, perPage = perPage)
+            val response: String? = fetchUserEvents(page = page, perPage = perPage)
+            val events: List<GitHubPublicEventOfaUser> = toJson(response)
+
             val thisPageTodayCommitEvents = events.filter { it.isTodayCommitEvent() }
             todayCommitEventCounts += thisPageTodayCommitEvents.size
 
@@ -67,28 +69,31 @@ class OkHttpGitHubApiClient(
         return todayCommitEventCounts
     }
 
-    private fun fetchUserEvents(
-        page: Int,
-        perPage: Int,
-    ): List<GitHubPublicEventOfaUser> {
-        val request = buildAUserEventsRequest(page = page, perPage = perPage)
-        val responseString =
-            okHttpClient.newCall(request).execute().use { response ->
-                if (response.code == 401) {
-                    throw RuntimeException("Unauthorized: Check your GitHub token")
-                } else if (!response.isSuccessful) {
-                    throw RuntimeException("Failed to fetch user events: ${response.code} ${response.message}")
-                }
-
-                response.body?.string()
-            }
+    private fun toJson(response: String?): List<GitHubPublicEventOfaUser> {
         val itemType = object : TypeToken<List<GitHubPublicEventOfaUser>>() {}.type
-        val events: List<GitHubPublicEventOfaUser> = gson.fromJson(responseString, itemType)
+        val events: List<GitHubPublicEventOfaUser> = gson.fromJson(response, itemType)
 
         return events
     }
 
-    private fun buildAUserEventsRequest(
+    private fun fetchUserEvents(
+        page: Int,
+        perPage: Int,
+    ): String? {
+        val request = buildFetchUserEventRequest(page = page, perPage = perPage)
+
+        return okHttpClient.newCall(request).execute().use { response ->
+            if (response.code == 401) {
+                throw RuntimeException("Unauthorized: Check your GitHub token")
+            } else if (!response.isSuccessful) {
+                throw RuntimeException("Failed to fetch user events: ${response.code} ${response.message}")
+            }
+
+            response.body?.string()
+        }
+    }
+
+    private fun buildFetchUserEventRequest(
         page: Int,
         perPage: Int,
     ): Request {
