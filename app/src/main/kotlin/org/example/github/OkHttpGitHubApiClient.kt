@@ -16,33 +16,34 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-private val okHttpClient = OkHttpClient()
-
 class OkHttpGitHubApiClient(
     username: String,
     token: String,
 ) : GitHubApiClient(username = username, token = token) {
-    private var gson: Gson // for deserializing JSON
+    companion object {
+        private val okHttpClient = OkHttpClient()
+        private val gson: Gson = createGson()
 
-    init {
-        val gsonBuilder = GsonBuilder()
+        private fun createGson(): Gson {
+            val gsonBuilder = GsonBuilder()
 
-        gsonBuilder.registerTypeAdapter(
-            LocalDateTime::class.java,
-            object : JsonDeserializer<LocalDateTime> {
-                override fun deserialize(
-                    json: JsonElement,
-                    typeOfT: Type,
-                    context: JsonDeserializationContext,
-                ): LocalDateTime {
-                    // NOTE: 한국 시간대로 변환해야 커밋 개수가 정확하게 나온다.
-                    val instant = Instant.parse(json.asString)
-                    return LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"))
-                }
-            },
-        )
+            gsonBuilder.registerTypeAdapter(
+                LocalDateTime::class.java,
+                object : JsonDeserializer<LocalDateTime> {
+                    override fun deserialize(
+                        json: JsonElement,
+                        typeOfT: Type,
+                        context: JsonDeserializationContext,
+                    ): LocalDateTime {
+                        // NOTE: 한국 시간대로 변환해야 커밋 개수가 정확하게 나온다.
+                        val instant = Instant.parse(json.asString)
+                        return LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"))
+                    }
+                },
+            )
 
-        gson = gsonBuilder.create()
+            return gsonBuilder.create()
+        }
     }
 
     override fun getTodayCommitCount(logger: Logger): Int {
