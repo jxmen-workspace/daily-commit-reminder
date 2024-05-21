@@ -10,17 +10,26 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
+import org.example.github.GitHubApiClient
+import org.example.github.OkHttpGitHubApiClient
 import org.example.messenger.Messenger
 import org.example.messenger.TelegramMessenger
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.LambdaLoggerAdapter
 
+class RequiredEnvVarNotSetException(envVarName: String) : IllegalArgumentException("'$envVarName' is not set")
+
 class App(
     private val messenger: Messenger =
         TelegramMessenger(
-            botToken = System.getenv("TELEGRAM_BOT_TOKEN"),
-            botUsername = System.getenv("TELEGRAM_BOT_USERNAME"),
-            chatId = System.getenv("TELEGRAM_CHAT_ID"),
+            botToken = System.getenv("TELEGRAM_BOT_TOKEN") ?: throw RequiredEnvVarNotSetException("TELEGRAM_BOT_TOKEN"),
+            botUsername = System.getenv("TELEGRAM_BOT_USERNAME") ?: throw RequiredEnvVarNotSetException("TELEGRAM_BOT_USERNAME"),
+            chatId = System.getenv("TELEGRAM_CHAT_ID") ?: throw RequiredEnvVarNotSetException("TELEGRAM_CHAT_ID"),
+        ),
+    private val gitHubApiClient: GitHubApiClient =
+        OkHttpGitHubApiClient(
+            username = System.getenv("GITHUB_USERNAME") ?: throw RequiredEnvVarNotSetException("GITHUB_USERNAME"),
+            token = System.getenv("GITHUB_TOKEN") ?: throw RequiredEnvVarNotSetException("GITHUB_TOKEN"),
         ),
 ) : RequestHandler<HandlerInput, HandlerOutput> {
     override fun handleRequest(
@@ -28,10 +37,11 @@ class App(
         context: Context,
     ): HandlerOutput {
         val logger = context.logger
-        input.message.let { logger.log("received input message: '$it'") }
+        val lambdaLoggerAdapter = LambdaLoggerAdapter(logger)
 
+        val todayCommitCount = gitHubApiClient.getTodayCommitCount(logger = lambdaLoggerAdapter)
         logger.log("start sending message")
-        messenger.sendMessage(text = "hello", logger = LambdaLoggerAdapter(logger))
+        messenger.sendMessage(text = todayCommitCount.toString(), logger = lambdaLoggerAdapter)
         logger.log("sending message completed")
 
         return HandlerOutput(message = "hello")
