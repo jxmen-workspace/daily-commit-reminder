@@ -12,8 +12,9 @@ import org.example.github.dto.GitHubPublicEventOfaUser
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
 import java.lang.reflect.Type
+import java.time.Instant
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
 
 private val okHttpClient = OkHttpClient()
 
@@ -34,7 +35,9 @@ class OkHttpGitHubApiClient(
                     typeOfT: Type,
                     context: JsonDeserializationContext,
                 ): LocalDateTime {
-                    return LocalDateTime.parse(json.asString, DateTimeFormatter.ISO_DATE_TIME)
+                    // NOTE: 한국 시간대로 변환해야 커밋 개수가 정확하게 나온다.
+                    val instant = Instant.parse(json.asString)
+                    return LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"))
                 }
             },
         )
