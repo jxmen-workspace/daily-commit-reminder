@@ -53,7 +53,7 @@ class OkHttpGitHubApiClient(
         while (true) {
             logger.log("Fetching GitHub API page: $page")
             val response: String? = fetchUserEvents(page = page, perPage = perPage)
-            val events: List<GitHubPublicEventOfaUser> = toJson(response)
+            val events: List<GitHubPublicEventOfaUser> = deserializeToEvents(response)
 
             val thisPageTodayCommitEvents = events.filter { it.isTodayCommitEvent() }
             todayCommitEventCounts += thisPageTodayCommitEvents.size
@@ -70,7 +70,7 @@ class OkHttpGitHubApiClient(
         return todayCommitEventCounts
     }
 
-    private fun toJson(response: String?): List<GitHubPublicEventOfaUser> {
+    private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
         val itemType = object : TypeToken<List<GitHubPublicEventOfaUser>>() {}.type
         val events: List<GitHubPublicEventOfaUser> = gson.fromJson(response, itemType)
 
