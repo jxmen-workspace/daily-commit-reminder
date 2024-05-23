@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.ClientContext
 import com.amazonaws.services.lambda.runtime.CognitoIdentity
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.LambdaLogger
+import org.example.support.logger.ConsoleLogger
 
 abstract class AbstractLambdaLoggerContext : Context {
     override fun getAwsRequestId(): String {
@@ -54,6 +55,8 @@ abstract class AbstractLambdaLoggerContext : Context {
  */
 class ConsoleLoggerLambdaContext : AbstractLambdaLoggerContext() {
     override fun getLogger(): LambdaLogger {
+        val logger = ConsoleLogger()
+
         return object : LambdaLogger {
             override fun log(message: String) {
                 logger.log(message)
