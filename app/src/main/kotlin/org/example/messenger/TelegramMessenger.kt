@@ -27,7 +27,7 @@ class TelegramMessenger(
         text: String,
         logger: Logger,
     ) {
-        logger.log("send telegram message to: $chatId")
+        logger.log("send telegram message to: '$chatId', message: '$text'")
         execute(SendMessage(chatId, text))
         logger.log("telegram message send completed.")
     }

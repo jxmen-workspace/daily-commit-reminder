@@ -40,7 +40,20 @@ class App(
         val lambdaLogger = context.logger
         val lambdaLoggerAdapter = LambdaLoggerAdapter(lambdaLogger)
 
-        val todayCommitCount = gitHubApiClient.getTodayCommitCount(logger = lambdaLoggerAdapter)
+        val todayCommitCount =
+            try {
+                gitHubApiClient.getTodayCommitCount(logger = lambdaLoggerAdapter)
+            } catch (e: Exception) {
+                messenger.sendMessage(
+                    text = "Failed to get today's commit count. Error Message: ${e.message}",
+                    logger = lambdaLoggerAdapter,
+                )
+
+                return HandlerOutput(
+                    message = "failed.",
+                    errorMessage = e.message,
+                )
+            }
         messenger.sendMessage(text = todayCommitCount.toString(), logger = lambdaLoggerAdapter)
 
         return HandlerOutput(

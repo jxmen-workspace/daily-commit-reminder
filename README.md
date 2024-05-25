@@ -21,7 +21,7 @@ aws lambda update-function-code \
 
 AWS Lambda 사용 시 런타임 설정의 핸들러 명칭을 정확히 잘 적어주어야 동작한다.
 
-![](.README_images/38b9e200.png)
+![aws lambda handler settings](.README_images/38b9e200.png)
 
 ### ToDo
 
@@ -45,6 +45,8 @@ AWS Lambda 사용 시 런타임 설정의 핸들러 명칭을 정확히 잘 적�
   - PushEvent 이벤트 안에 있는 커밋의 커밋 수를 가져와야 함? 
     - (하지만... 각각 커밋의 날짜는 들어있지 않다.)
     - 21일 11시 50분에 커밋을 하고 22일 00시 10분에 푸쉬하면, 21일에 커밋을 한 것으로 인식되어야 함 
+- [x] 에러 발생시 텔레그램으로 메세지 전송
+- [ ] Pull Reqeust 이벤트 하나만 적용
 - [ ] 텔레그램에 보낼 텍스트 예쁘게 다듬기
 - [ ] 커밋으로 인식되는 이벤트 종류 정확하게 파악 필요
 - [ ] github actions에서 배포 자동화
