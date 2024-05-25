@@ -8,6 +8,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.example.github.dto.GitHubCommit
 import org.example.github.dto.GitHubPublicEventOfaUser
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
@@ -47,27 +48,43 @@ class OkHttpGitHubApiClient(
     }
 
     override fun getTodayCommitCount(logger: Logger): Int {
-        var todayCommitEventCounts = 0
+        val todayPushEvents = mutableListOf<GitHubPublicEventOfaUser>()
+        var todayContributeCounts = 0 // 오늘 기여 횟수를 구한다. issue, pull request도 기여로 간주한다.
 
         logger.log("Start Fetching GitHub API")
-        while (true) {
+
+        while (page < MAX_PAGE) {
             logger.log("Fetching GitHub API page: $page")
             val response: String? = fetchUserEvents(page = page, perPage = perPage)
             val events: List<GitHubPublicEventOfaUser> = deserializeToEvents(response)
+            events.forEach {
+                if (it.isTodayPushEvent()) {
+                    todayPushEvents.add(it)
+                } else if (it.isTodayIssuesEvent() || it.isTodayPullRequestEvent()) {
+                    todayContributeCounts++
+                }
+            }
 
-            val thisPageTodayCommitEvents = events.filter { it.isTodayCommitEvent() }
-            todayCommitEventCounts += thisPageTodayCommitEvents.size
-
-            if (thisPageTodayCommitEvents.size < perPage) {
+            val todayEventCounts = events.filter { it.isToday() }.size
+            if (todayEventCounts < perPage) {
                 break
             } else {
                 page++
             }
         }
-        logger.log("Fetched all GitHub API")
-        logger.log("Today's commit count: $todayCommitEventCounts")
 
-        return todayCommitEventCounts
+        val repositoryCommitsMap = createRepositoryCommitsMap(todayPushEvents)
+
+        for ((repositoryName, pushEvents) in repositoryCommitsMap) {
+            val response: String? = fetchUserCommits(repositoryName)
+            val commits: List<GitHubCommit> = deserializeToCommits(response)
+
+            commits.filter { it.isToday() }
+                .filter { commit -> pushEvents.any { pushEvent -> pushEvent.hasSameCommitSha(commit.sha) } }
+                .forEach { _ -> todayContributeCounts++ }
+        }
+
+        return todayContributeCounts
     }
 
     private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
@@ -75,6 +92,55 @@ class OkHttpGitHubApiClient(
         val events: List<GitHubPublicEventOfaUser> = gson.fromJson(response, itemType)
 
         return events
+    }
+
+    private fun createRepositoryCommitsMap(
+        todayPushEvents: List<GitHubPublicEventOfaUser>,
+    ): MutableMap<String, Set<GitHubPublicEventOfaUser>> {
+        val repositoryCommitsMap = mutableMapOf<String, Set<GitHubPublicEventOfaUser>>()
+        todayPushEvents.forEach {
+            val repositoryName = it.repo!!.name
+            if (repositoryCommitsMap.containsKey(repositoryName)) {
+                repositoryCommitsMap[repositoryName] = repositoryCommitsMap[repositoryName]!!.plus(it)
+            } else {
+                repositoryCommitsMap[repositoryName] = setOf(it)
+            }
+        }
+
+        return repositoryCommitsMap
+    }
+
+    private fun deserializeToCommits(response: String?): List<GitHubCommit> {
+        val itemType = object : TypeToken<List<GitHubCommit>>() {}.type
+        val events: List<GitHubCommit> = gson.fromJson(response, itemType)
+
+        return events
+    }
+
+    private fun fetchUserCommits(repositoryName: String): String? {
+        val request = buildFetchCommitsRequest(repositoryName)
+
+        val response =
+            okHttpClient.newCall(request).execute().use { response ->
+                if (response.code == 401) {
+                    throw RuntimeException("Unauthorized: Check your GitHub token")
+                } else if (!response.isSuccessful) {
+                    throw RuntimeException("Failed to fetch commits: ${response.code} ${response.message}")
+                }
+
+                response.body?.string()
+            }
+
+        return response
+    }
+
+    private fun buildFetchCommitsRequest(repositoryName: String): Request {
+        return Request.Builder()
+            .url("https://api.github.com/repos/$username/$repositoryName/commits")
+            .header("Accept", "application/vnd.github.v3+json")
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .header("Authorization", "token $token")
+            .build()
     }
 
     private fun fetchUserEvents(
