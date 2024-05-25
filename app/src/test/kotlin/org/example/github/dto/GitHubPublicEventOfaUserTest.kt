@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
-class PublicEventOfaUserTest : DescribeSpec({
+class GitHubPublicEventOfaUserTest : DescribeSpec({
     describe("todayCommitEvent") {
         context("날짜가 같고 commit 종류의 이벤트라면") {
             it("true를 반환한다") {
