@@ -136,7 +136,7 @@ class OkHttpGitHubApiClient(
 
     private fun buildFetchCommitsRequest(repositoryName: String): Request {
         return Request.Builder()
-            .url("https://api.github.com/repos/$username/$repositoryName/commits")
+            .url("https://api.github.com/repos/$repositoryName/commits")
             .header("Accept", "application/vnd.github.v3+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .header("Authorization", "token $token")
