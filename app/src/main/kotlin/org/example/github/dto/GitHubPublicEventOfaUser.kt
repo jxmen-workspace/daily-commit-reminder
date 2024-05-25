@@ -10,7 +10,9 @@ data class GitHubPublicEventPayloadCommit(
 
 data class GitHubPublicEventOfaUserPayload(val commits: List<GitHubPublicEventPayloadCommit>?)
 
-data class GitHubPublicEventOfaUserRepository(val name: String)
+data class GitHubPublicEventOfaUserRepository(
+    val name: String, // 'jxmen/til' 형태로 불러와짐
+)
 
 data class GitHubPublicEventOfaUser(
     val id: String,
