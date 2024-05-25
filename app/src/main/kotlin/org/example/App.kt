@@ -63,9 +63,11 @@ class App(
     }
 
     private fun validateSeoulTimezone() {
+        requireNotNull(System.getenv("TZ"))
+
         when (System.getenv("TZ")) {
             "Asia/Seoul" -> return
-            else -> throw IllegalArgumentException("Timezone must be set to 'Asia/Seoul'")
+            else -> throw IllegalArgumentException("Timezone is not null, but not set to 'Asia/Seoul'")
         }
     }
 }

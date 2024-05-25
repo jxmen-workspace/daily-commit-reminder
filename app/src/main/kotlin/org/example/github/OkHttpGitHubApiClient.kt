@@ -53,6 +53,7 @@ class OkHttpGitHubApiClient(
 
         logger.log("Start Fetching GitHub API")
 
+        // 이벤트 목록을 조회한다. push 이벤트의 경우 커밋을 조회하기 위해 별도로 저장한다.
         while (page < MAX_PAGE) {
             logger.log("Fetching GitHub API page: $page")
             val response: String? = fetchUserEvents(page = page, perPage = perPage)
@@ -73,8 +74,8 @@ class OkHttpGitHubApiClient(
             }
         }
 
-        val repositoryCommitsMap = createRepositoryCommitsMap(todayPushEvents)
-
+        // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
+        val repositoryCommitsMap = groupCommitByRepository(todayPushEvents)
         for ((repositoryName, pushEvents) in repositoryCommitsMap) {
             val response: String? = fetchUserCommits(repositoryName)
             val commits: List<GitHubCommit> = deserializeToCommits(response)
@@ -94,7 +95,7 @@ class OkHttpGitHubApiClient(
         return events
     }
 
-    private fun createRepositoryCommitsMap(
+    private fun groupCommitByRepository(
         todayPushEvents: List<GitHubPublicEventOfaUser>,
     ): MutableMap<String, Set<GitHubPublicEventOfaUser>> {
         val repositoryCommitsMap = mutableMapOf<String, Set<GitHubPublicEventOfaUser>>()
