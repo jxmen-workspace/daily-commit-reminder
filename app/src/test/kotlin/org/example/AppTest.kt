@@ -3,10 +3,6 @@
  */
 package org.example
 
-import com.amazonaws.services.lambda.runtime.ClientContext
-import com.amazonaws.services.lambda.runtime.CognitoIdentity
-import com.amazonaws.services.lambda.runtime.Context
-import com.amazonaws.services.lambda.runtime.LambdaLogger
 import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
 import org.example.github.GitHubApiClient
@@ -50,7 +46,7 @@ class AppTest {
 
     @Test
     fun `handleRequest 메서드는 성공 메시지와 커밋 수를 리턴한다`() {
-        val consoleLoggerContext = createConsoleLoggerContext()
+        val consoleLoggerContext = ConsoleLoggerLambdaContext()
 
         val actual =
             app.handleRequest(
@@ -60,59 +56,4 @@ class AppTest {
 
         assertEquals(HandlerOutput(message = "success.", todayCommitCount = 1), actual)
     }
-
-    private fun createConsoleLoggerContext() =
-        object : Context {
-            override fun getAwsRequestId(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getLogGroupName(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getLogStreamName(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getFunctionName(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getFunctionVersion(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getInvokedFunctionArn(): String {
-                throw NotImplementedError()
-            }
-
-            override fun getIdentity(): CognitoIdentity {
-                throw NotImplementedError()
-            }
-
-            override fun getClientContext(): ClientContext {
-                throw NotImplementedError()
-            }
-
-            override fun getRemainingTimeInMillis(): Int {
-                throw NotImplementedError()
-            }
-
-            override fun getMemoryLimitInMB(): Int {
-                throw NotImplementedError()
-            }
-
-            override fun getLogger(): LambdaLogger {
-                return object : LambdaLogger {
-                    override fun log(message: String?) {
-                        println(message)
-                    }
-
-                    override fun log(message: ByteArray?) {
-                        println(message)
-                    }
-                }
-            }
-        }
 }

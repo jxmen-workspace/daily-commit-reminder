@@ -3,25 +3,39 @@ package org.example.github.dto
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 
+data class GitHubPublicEventPayloadCommit(
+    val sha: String,
+    val message: String,
+)
+
+data class GitHubPublicEventOfaUserPayload(val commits: List<GitHubPublicEventPayloadCommit>?)
+
+data class GitHubPublicEventOfaUserRepository(val name: String)
+
 data class GitHubPublicEventOfaUser(
     val id: String,
     val type: String,
-    @SerializedName("created_at") val createdAt: LocalDateTime,
+    val repo: GitHubPublicEventOfaUserRepository?,
+    val payload: GitHubPublicEventOfaUserPayload?,
+    @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun isTodayCommitEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && isCommitEvent()
-    }
+    constructor(id: String, type: String, createdAt: LocalDateTime) : this(
+        id = id,
+        type = type,
+        repo = null,
+        payload = null,
+        createdAt = createdAt,
+    )
 
-    private fun isCommitEvent(): Boolean {
-        return when (type) {
-            "PushEvent" -> true
-            "PullRequestEvent" -> true
-            "IssuesEvent" -> true
-            else -> false
-        }
-    }
+    constructor(id: String, type: String, payload: GitHubPublicEventOfaUserPayload, createdAt: LocalDateTime) : this(
+        id = id,
+        type = type,
+        repo = null,
+        payload = payload,
+        createdAt = createdAt,
+    )
 
-    private fun isToday(date: LocalDateTime): Boolean {
+    fun isToday(date: LocalDateTime = LocalDateTime.now()): Boolean {
         if (createdAt.year != date.year) {
             return false
         }
@@ -35,5 +49,21 @@ data class GitHubPublicEventOfaUser(
         }
 
         return true
+    }
+
+    fun isTodayPushEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
+        return isToday(date) && type == "PushEvent"
+    }
+
+    fun isTodayIssuesEvent(): Boolean {
+        return isToday(LocalDateTime.now()) && type == "IssuesEvent"
+    }
+
+    fun isTodayPullRequestEvent(): Boolean {
+        return isToday(LocalDateTime.now()) && type == "PullRequestEvent"
+    }
+
+    fun hasSameCommitSha(sha: String): Boolean {
+        return payload?.commits?.any { it.sha == sha } == true
     }
 }

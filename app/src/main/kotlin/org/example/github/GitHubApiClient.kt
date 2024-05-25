@@ -8,5 +8,9 @@ abstract class GitHubApiClient(
     protected val username: String,
     protected val token: String,
 ) {
+    companion object {
+        const val MAX_PAGE = 10
+    }
+
     abstract fun getTodayCommitCount(logger: Logger): Int
 }
