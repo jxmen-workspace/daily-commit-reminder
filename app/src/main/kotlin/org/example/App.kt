@@ -51,22 +51,13 @@ class App(
                     logger = lambdaLoggerAdapter,
                 )
 
-                return HandlerOutput(
-                    message = "failed.",
-                    errorMessage = e.message,
-                )
+                return HandlerOutput(message = "failed.", errorMessage = e.message)
             }
 
         // send message
-        messenger.sendGitHubContributesMessage(
-            contributes = todayGitHubContributes,
-            logger = lambdaLoggerAdapter,
-        )
+        messenger.sendGitHubContributesMessage(contributes = todayGitHubContributes, logger = lambdaLoggerAdapter)
 
-        return HandlerOutput(
-            message = "success.",
-            contributes = todayGitHubContributes,
-        )
+        return HandlerOutput(message = "success.", contributes = todayGitHubContributes)
     }
 
     private fun validateSeoulTimezone() {

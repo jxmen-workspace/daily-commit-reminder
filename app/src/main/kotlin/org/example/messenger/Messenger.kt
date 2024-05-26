@@ -2,6 +2,7 @@ package org.example.messenger
 
 import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.Logger
+import java.time.LocalDateTime
 
 interface Messenger {
     fun sendMessage(
@@ -12,5 +13,6 @@ interface Messenger {
     fun sendGitHubContributesMessage(
         contributes: TodayGitHubContributes,
         logger: Logger,
+        now: LocalDateTime = LocalDateTime.now(),
     )
 }
