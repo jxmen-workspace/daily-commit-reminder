@@ -9,8 +9,13 @@ jobs:
   deploy-to-lambda:
     runs-on: ubuntu-latest
 
+    permissions:
+      # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions#using-this-action
+      id-token: write # Required for AWS CLI
+      contents: read
+
     steps:
-      - name: Checkout code
+      - name: Git Clone Repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
@@ -29,18 +34,17 @@ jobs:
         uses: unfor19/install-aws-cli-action@master
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_LAMBDA_ARN }}
 
       - name: Deploy to AWS Lambda # NOTE: `app-all.jar` is the jar file name
-        # If you don't need to view the output with less, use `--no-cli-pager` (instead of `AWS_PAGER: ""`)
+        # also can use `--no-cli-pager` option (instead of `AWS_PAGER: ""`)
         run: |
           aws lambda update-function-code \
             --function-name ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://./app/build/libs/app-all.jar
         env:
           # https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-pagination.html#cli-usage-pagination-clientside
-          AWS_PAGER: "" # Disable the pager
+          AWS_PAGER: "" # Disable the pager (less)

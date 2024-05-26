@@ -24,7 +24,8 @@
 - [x] issue/pull reuqest/commit 개수 세분화
 - [x] 텔레그램에 보낼 텍스트 예쁘게 다듬기
 
-### refactoring / test
+### after 1.0.0 (refactoring, test, ci, etc ...)
 
-- [ ] github actions aws cli 배포 arn 기반으로 변경
+- [x] github actions aws cli 배포 arn 기반으로 변경
 - [ ] 테스트 코드 추가
+- [ ] lambda 버전도 같이 배포 - 설명에 마지막 커밋 값 설정
