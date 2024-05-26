@@ -8,7 +8,20 @@ data class GitHubPublicEventPayloadCommit(
     val message: String,
 )
 
-data class GitHubPublicEventOfaUserPayload(val commits: List<GitHubPublicEventPayloadCommit>?)
+data class GitHubPublicEventOfaUserPayload(
+    val commits: List<GitHubPublicEventPayloadCommit>?,
+    val action: String?,
+) {
+    constructor(commits: List<GitHubPublicEventPayloadCommit>) : this(
+        commits = commits,
+        action = null,
+    )
+
+    constructor(action: String) : this(
+        commits = null,
+        action = action,
+    )
+}
 
 data class GitHubPublicEventOfaUserRepository(
     val name: String, // 'jxmen/til' 형태로 불러와짐
@@ -21,20 +34,20 @@ data class GitHubPublicEventOfaUser(
     val payload: GitHubPublicEventOfaUserPayload?,
     @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    constructor(id: String, type: String, createdAt: LocalDateTime) : this(
-        id = id,
-        type = type,
-        repo = null,
-        payload = null,
-        createdAt = createdAt,
-    )
-
     constructor(id: String, type: String, payload: GitHubPublicEventOfaUserPayload, createdAt: LocalDateTime) : this(
         id = id,
         type = type,
         repo = null,
         payload = payload,
         createdAt = createdAt,
+    )
+
+    constructor(type: String, createdAt: LocalDateTime, payload: GitHubPublicEventOfaUserPayload) : this(
+        id = null.toString(),
+        type = type,
+        createdAt = createdAt,
+        repo = null,
+        payload = payload,
     )
 
     fun isToday(date: LocalDateTime = LocalDateTime.now()): Boolean {
@@ -57,15 +70,19 @@ data class GitHubPublicEventOfaUser(
         return isToday(date) && type == "PushEvent"
     }
 
-    fun isTodayIssuesEvent(): Boolean {
-        return isToday(LocalDateTime.now()) && type == "IssuesEvent"
-    }
-
-    fun isTodayPullRequestEvent(): Boolean {
-        return isToday(LocalDateTime.now()) && type == "PullRequestEvent"
-    }
-
     fun hasSameCommitSha(sha: String): Boolean {
         return payload?.commits?.any { it.sha == sha } == true
+    }
+
+    fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
+        return isToday(date) &&
+            type == "PullRequestEvent" &&
+            payload?.action == "opened"
+    }
+
+    fun isTodayOpenIssuesEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
+        return isToday(date) &&
+            type == "IssuesEvent" &&
+            payload?.action == "opened"
     }
 }
