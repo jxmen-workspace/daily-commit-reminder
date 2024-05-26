@@ -5,3 +5,6 @@
 build
 
 .idea
+
+# Ignore Act Secrets
+my.secrets
