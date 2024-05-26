@@ -75,8 +75,6 @@ class OkHttpGitHubApiClient(
                 page++
             }
         }
-        logger.log("today's issue count: $todayOpenIssueCounts")
-        logger.log("today's pull request count: $todayOpenPullRequestCounts")
 
         var todayCommitCounts = 0
 
