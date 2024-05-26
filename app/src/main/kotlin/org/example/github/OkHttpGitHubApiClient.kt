@@ -48,21 +48,22 @@ class OkHttpGitHubApiClient(
     }
 
     override fun getTodayCommitCount(logger: Logger): Int {
-        val todayPushEvents = mutableListOf<GitHubPublicEventOfaUser>()
-        var todayContributeCounts = 0 // 오늘 기여 횟수를 구한다. issue, pull request도 기여로 간주한다.
+        val todayPushEvents = mutableSetOf<GitHubPublicEventOfaUser>()
+        var todayOpenIssueCounts = 0
+        var todayOpenPullRequestCounts = 0
 
-        logger.log("Start Fetching GitHub API")
+        logger.log("Start Calculating Today's Commit Count")
 
         // 이벤트 목록을 조회한다. push 이벤트의 경우 커밋을 조회하기 위해 별도로 저장한다.
         while (page < MAX_PAGE) {
             logger.log("Fetching GitHub API page: $page")
             val response: String? = fetchUserEvents(page = page, perPage = perPage)
             val events: List<GitHubPublicEventOfaUser> = deserializeToEvents(response)
-            events.forEach {
-                if (it.isTodayPushEvent()) {
-                    todayPushEvents.add(it)
-                } else if (it.isTodayIssuesEvent() || it.isTodayPullRequestEvent()) {
-                    todayContributeCounts++
+            events.forEach { event ->
+                when {
+                    event.isTodayPushEvent() -> todayPushEvents.add(event)
+                    event.isTodayOpenIssuesEvent() -> todayOpenIssueCounts++
+                    event.isTodayOpenPullRequestEvent() -> todayOpenPullRequestCounts++
                 }
             }
 
@@ -73,19 +74,30 @@ class OkHttpGitHubApiClient(
                 page++
             }
         }
+        logger.log("today's issue count: $todayOpenIssueCounts")
+        logger.log("today's pull request count: $todayOpenPullRequestCounts")
+
+        var todayCommitCounts = 0
 
         // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
         val repositoryCommitsMap = groupCommitByRepository(todayPushEvents)
         for ((repositoryName, pushEvents) in repositoryCommitsMap) {
+            logger.log("Fetching commits of '$repositoryName'")
             val response: String? = fetchUserCommits(repositoryName)
             val commits: List<GitHubCommit> = deserializeToCommits(response)
 
-            commits.filter { it.isToday() }
-                .filter { commit -> pushEvents.any { pushEvent -> pushEvent.hasSameCommitSha(commit.sha) } }
-                .forEach { _ -> todayContributeCounts++ }
+            val todayCommits =
+                commits.filter { it.isToday() }
+                    .filter { commit -> pushEvents.any { pushEvent -> pushEvent.hasSameCommitSha(commit.sha) } }
+
+            todayCommitCounts += todayCommits.size
+            logger.log("today's '$repositoryName' commit count: ${todayCommits.size}")
         }
 
-        return todayContributeCounts
+        logger.log("today's commit count: $todayCommitCounts")
+        logger.log("End of Calculating Today's Commit Count")
+
+        return todayOpenIssueCounts + todayOpenPullRequestCounts + todayCommitCounts
     }
 
     private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
@@ -96,7 +108,7 @@ class OkHttpGitHubApiClient(
     }
 
     private fun groupCommitByRepository(
-        todayPushEvents: List<GitHubPublicEventOfaUser>,
+        todayPushEvents: Set<GitHubPublicEventOfaUser>,
     ): MutableMap<String, Set<GitHubPublicEventOfaUser>> {
         val repositoryCommitsMap = mutableMapOf<String, Set<GitHubPublicEventOfaUser>>()
         todayPushEvents.forEach {
