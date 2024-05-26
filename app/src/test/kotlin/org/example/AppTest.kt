@@ -54,6 +54,6 @@ class AppTest {
                 context = consoleLoggerContext,
             )
 
-        assertEquals(HandlerOutput(message = "success.", todayCommitCount = 1, errorMessage = e.message), actual)
+        assertEquals(HandlerOutput(message = "success.", todayCommitCount = 1), actual)
     }
 }
