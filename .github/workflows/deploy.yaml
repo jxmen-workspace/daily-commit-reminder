@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Gradle make jar file
+        run: ./gradlew shadowJar
+
+      - name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@master
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to AWS Lambda # NOTE: `app-all.jar` is the jar file name
+        # If you don't need to view the output with less, use `--no-cli-pager` (instead of `AWS_PAGER: ""`)
+        run: |
+          aws lambda update-function-code \
+            --function-name daily-commit-notifier \
+            --zip-file fileb://./app/build/libs/app-all.jar
+        env:
+          # https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-pagination.html#cli-usage-pagination-clientside
+          AWS_PAGER: "" # Disable the pager
