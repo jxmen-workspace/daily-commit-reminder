@@ -1,19 +1,24 @@
 package org.example.dto
 
+import org.example.github.dto.TodayGitHubContributes
+
 data class HandlerOutput(
     val message: String,
-    val todayCommitCount: Int?,
     val errorMessage: String?,
+    val activity: TodayGitHubContributes?,
 ) {
-    constructor(message: String, todayCommitCount: Int) : this(
-        message = message,
-        todayCommitCount = todayCommitCount,
-        errorMessage = null,
-    )
-
     constructor(message: String, errorMessage: String?) : this(
         message = message,
-        todayCommitCount = null,
         errorMessage = errorMessage,
+        activity = null,
+    )
+
+    constructor(
+        message: String,
+        contributes: TodayGitHubContributes,
+    ) : this(
+        message = message,
+        errorMessage = null,
+        activity = contributes,
     )
 }

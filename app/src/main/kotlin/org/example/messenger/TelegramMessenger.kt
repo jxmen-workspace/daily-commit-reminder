@@ -1,10 +1,12 @@
 package org.example.messenger
 
+import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
+import java.time.LocalDateTime
 
 class TelegramMessenger(
     botToken: String,
@@ -28,7 +30,52 @@ class TelegramMessenger(
         logger: Logger,
     ) {
         logger.log("send telegram message to: '$chatId', message: '$text'")
-        execute(SendMessage(chatId, text))
+        sendMessageTo(chatId, text)
         logger.log("telegram message send completed.")
+    }
+
+    override fun sendGitHubContributesMessage(
+        contributes: TodayGitHubContributes,
+        logger: Logger,
+    ) {
+        val now = LocalDateTime.now()
+
+        val message =
+            contributes.let {
+                if (it.total == 0) {
+                    """
+                    |=======================
+                    |❌ Today's GitHub Contributes
+                    |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
+                    |Name: ${it.username}
+                    |=======================
+                    |No Contributes Today.
+                    """.trimMargin()
+                } else {
+                    """
+                    |=======================
+                    |✅ Today's GitHub Contributes
+                    |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
+                    |Name: ${it.username}
+                    |=======================
+                    |Commits: ${it.commit}
+                    |Open Issues: ${it.openIssues}
+                    |Open Pull Requests: ${it.openPullRequests}
+                    |
+                    |Total: ${it.total}
+                    """.trimMargin()
+                }
+            }
+
+        logger.log("send telegram github contributes message to: '$chatId'")
+        sendMessageTo(chatId, message)
+        logger.log("telegram github contributes message send completed to: '$chatId'")
+    }
+
+    private fun sendMessageTo(
+        chatId: String,
+        text: String,
+    ) {
+        execute(SendMessage(chatId, text))
     }
 }

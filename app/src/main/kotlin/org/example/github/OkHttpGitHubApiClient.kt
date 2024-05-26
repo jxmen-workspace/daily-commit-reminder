@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.example.github.dto.GitHubCommit
 import org.example.github.dto.GitHubPublicEventOfaUser
+import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
 import java.lang.reflect.Type
@@ -47,7 +48,7 @@ class OkHttpGitHubApiClient(
         }
     }
 
-    override fun getTodayCommitCount(logger: Logger): Int {
+    override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
         val todayPushEvents = mutableSetOf<GitHubPublicEventOfaUser>()
         var todayOpenIssueCounts = 0
         var todayOpenPullRequestCounts = 0
@@ -95,9 +96,16 @@ class OkHttpGitHubApiClient(
         }
 
         logger.log("today's commit count: $todayCommitCounts")
+        logger.log("today's issue count: $todayOpenIssueCounts")
+        logger.log("today's pull request count: $todayOpenPullRequestCounts")
         logger.log("End of Calculating Today's Commit Count")
 
-        return todayOpenIssueCounts + todayOpenPullRequestCounts + todayCommitCounts
+        return TodayGitHubContributes(
+            username = username,
+            commit = todayCommitCounts,
+            openIssues = todayOpenIssueCounts,
+            openPullRequests = todayOpenPullRequestCounts,
+        )
     }
 
     private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
@@ -192,7 +200,16 @@ fun main() {
             username = System.getenv("GITHUB_USERNAME"),
             token = System.getenv("GITHUB_TOKEN"),
         )
-    val commitCount = client.getTodayCommitCount(logger = ConsoleLogger())
+    val activity = client.getTodayContributes(logger = ConsoleLogger())
 
-    println(commitCount)
+    println("=====================================")
+    println(
+        """
+        |Today's GitHub Activity
+        |=======================
+        |Commits: ${activity.commit}
+        |Open Issues: ${activity.openIssues}
+        |Open Pull Requests: ${activity.openPullRequests}
+        """.trimMargin(),
+    )
 }
