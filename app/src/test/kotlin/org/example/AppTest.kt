@@ -6,6 +6,7 @@ package org.example
 import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
 import org.example.github.GitHubApiClient
+import org.example.github.dto.TodayGitHubContributes
 import org.example.messenger.Messenger
 import org.example.support.logger.Logger
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,13 @@ class AppTest {
                 ) {
                     logger.log(text)
                 }
+
+                override fun sendGitHubContributesMessage(
+                    contributes: TodayGitHubContributes,
+                    logger: Logger,
+                ) {
+                    logger.log("sendGitHubActivityMessage")
+                }
             }
 
         app =
@@ -37,15 +45,20 @@ class AppTest {
                         username = "dummy",
                         token = "dummy",
                     ) {
-                        override fun getTodayCommitCount(logger: Logger): Int {
-                            return 1
+                        override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
+                            return TodayGitHubContributes(
+                                commit = 1,
+                                openPullRequests = 0,
+                                openIssues = 0,
+                                username = username,
+                            )
                         }
                     },
             )
     }
 
     @Test
-    fun `handleRequest 메서드는 성공 메시지와 커밋 수를 리턴한다`() {
+    fun `handleRequest 메서드는 성공 메시지와 기여를 리턴한다`() {
         val consoleLoggerContext = ConsoleLoggerLambdaContext()
 
         val actual =
@@ -54,6 +67,18 @@ class AppTest {
                 context = consoleLoggerContext,
             )
 
-        assertEquals(HandlerOutput(message = "success.", todayCommitCount = 1), actual)
+        assertEquals(
+            HandlerOutput(
+                message = "success.",
+                contributes =
+                    TodayGitHubContributes(
+                        commit = 1,
+                        openPullRequests = 0,
+                        openIssues = 0,
+                        username = "dummy",
+                    ),
+            ),
+            actual,
+        )
     }
 }

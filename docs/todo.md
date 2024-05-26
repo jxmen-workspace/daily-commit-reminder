@@ -23,6 +23,7 @@
 - [x] 에러 발생시 텔레그램으로 메세지 전송
 - [x] github actions에서 배포 자동화
 - [x] Pull Reqeust 생성한 이벤트만 집계에 추가
-- [ ] issue/pull reuqest/commit 개수 세분화
-- [ ] 텔레그램에 보낼 텍스트 예쁘게 다듬기
-- [ ] 커밋으로 인식되는 이벤트 종류 정확하게 파악 필요
+- [x] issue/pull reuqest/commit 개수 세분화
+- [x] 텔레그램에 보낼 텍스트 예쁘게 다듬기
+- [x] issue/pull reuqest/commit 개수 세분화
+- [x] 텔레그램에 보낼 텍스트 예쁘게 다듬기

@@ -37,15 +37,17 @@ class App(
     ): HandlerOutput {
         validateSeoulTimezone()
 
+        // setup logger
         val lambdaLogger = context.logger
         val lambdaLoggerAdapter = LambdaLoggerAdapter(lambdaLogger)
 
-        val todayCommitCount =
+        // get today GitHub Contributes
+        val todayGitHubContributes =
             try {
-                gitHubApiClient.getTodayCommitCount(logger = lambdaLoggerAdapter)
+                gitHubApiClient.getTodayContributes(logger = lambdaLoggerAdapter)
             } catch (e: Exception) {
                 messenger.sendMessage(
-                    text = "Failed to get today's commit count. Error Message: ${e.message}",
+                    text = "Failed to get today's GitHub Contributes. Error Message: ${e.message}",
                     logger = lambdaLoggerAdapter,
                 )
 
@@ -54,11 +56,16 @@ class App(
                     errorMessage = e.message,
                 )
             }
-        messenger.sendMessage(text = todayCommitCount.toString(), logger = lambdaLoggerAdapter)
+
+        // send message
+        messenger.sendGitHubContributesMessage(
+            contributes = todayGitHubContributes,
+            logger = lambdaLoggerAdapter,
+        )
 
         return HandlerOutput(
             message = "success.",
-            todayCommitCount = todayCommitCount,
+            contributes = todayGitHubContributes,
         )
     }
 

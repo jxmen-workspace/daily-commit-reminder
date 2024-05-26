@@ -1,5 +1,6 @@
 package org.example.github
 
+import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.Logger
 
 abstract class GitHubApiClient(
@@ -12,5 +13,5 @@ abstract class GitHubApiClient(
         const val MAX_PAGE = 10
     }
 
-    abstract fun getTodayCommitCount(logger: Logger): Int
+    abstract fun getTodayContributes(logger: Logger): TodayGitHubContributes
 }
