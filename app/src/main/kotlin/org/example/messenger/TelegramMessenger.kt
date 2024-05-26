@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 class TelegramMessenger(
     botToken: String,
     private val botUsername: String,
-    private val chatId: String,
+    private val chatId: String, // 메시지를 보낼 채팅방 ID
     private val logger: Logger = ConsoleLogger(),
 ) : TelegramLongPollingBot(botToken), Messenger {
     override fun getBotUsername(): String {
@@ -48,6 +48,7 @@ class TelegramMessenger(
                     |❌ Today's GitHub Contributes
                     |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
                     |Name: ${it.username}
+                    |Link: https://github.com/${it.username}
                     |=======================
                     |No Contributes Today.
                     """.trimMargin()
@@ -57,6 +58,7 @@ class TelegramMessenger(
                     |✅ Today's GitHub Contributes
                     |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
                     |Name: ${it.username}
+                    |Link: https://github.com/${it.username}
                     |=======================
                     |Commits: ${it.commit}
                     |Open Issues: ${it.openIssues}
