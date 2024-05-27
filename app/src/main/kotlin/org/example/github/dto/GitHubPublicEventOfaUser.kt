@@ -12,11 +12,6 @@ data class GitHubPublicEventOfaUserPayload(
     val commits: List<GitHubPublicEventPayloadCommit>?,
     val action: String?,
 ) {
-    constructor(commits: List<GitHubPublicEventPayloadCommit>) : this(
-        commits = commits,
-        action = null,
-    )
-
     constructor(action: String) : this(
         commits = null,
         action = action,
@@ -34,14 +29,6 @@ data class GitHubPublicEventOfaUser(
     val payload: GitHubPublicEventOfaUserPayload?,
     @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    constructor(id: String, type: String, payload: GitHubPublicEventOfaUserPayload, createdAt: LocalDateTime) : this(
-        id = id,
-        type = type,
-        repo = null,
-        payload = payload,
-        createdAt = createdAt,
-    )
-
     constructor(type: String, createdAt: LocalDateTime, payload: GitHubPublicEventOfaUserPayload) : this(
         id = null.toString(),
         type = type,
@@ -68,10 +55,6 @@ data class GitHubPublicEventOfaUser(
 
     fun isTodayPushEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
         return isToday(date) && type == "PushEvent"
-    }
-
-    fun hasSameCommitSha(sha: String): Boolean {
-        return payload?.commits?.any { it.sha == sha } == true
     }
 
     fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {

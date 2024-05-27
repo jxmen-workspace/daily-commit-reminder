@@ -5,12 +5,12 @@ import org.example.github.dto.TodayGitHubContributes
 data class HandlerOutput(
     val message: String,
     val errorMessage: String?,
-    val activity: TodayGitHubContributes?,
+    val contributes: TodayGitHubContributes?,
 ) {
     constructor(message: String, errorMessage: String?) : this(
         message = message,
         errorMessage = errorMessage,
-        activity = null,
+        contributes = null,
     )
 
     constructor(
@@ -19,6 +19,6 @@ data class HandlerOutput(
     ) : this(
         message = message,
         errorMessage = null,
-        activity = contributes,
+        contributes = contributes,
     )
 }

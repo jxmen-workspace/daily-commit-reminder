@@ -19,68 +19,56 @@ class AppTest {
 
     @BeforeEach
     fun setUp() {
-        val dummyMessenger =
-            object : Messenger {
-                override fun sendMessage(
-                    text: String,
-                    logger: Logger,
-                ) {
-                    logger.log(text)
-                }
+        val dummyMessenger = createDummyMessenger()
+        val createTodayGitHubContributes = createTodayGitHubContributes()
 
-                override fun sendGitHubContributesMessage(
-                    contributes: TodayGitHubContributes,
-                    logger: Logger,
-                    now: LocalDateTime,
-                ) {
-                    logger.log("sendGitHubActivityMessage")
+        val gitHubApiClient =
+            object : GitHubApiClient(username = "dummy", token = "dummy") {
+                override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
+                    return createTodayGitHubContributes
                 }
             }
 
-        app =
-            App(
-                messenger = dummyMessenger,
-                gitHubApiClient =
-                    object : GitHubApiClient(
-                        page = 1,
-                        perPage = 30,
-                        username = "dummy",
-                        token = "dummy",
-                    ) {
-                        override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
-                            return TodayGitHubContributes(
-                                commit = 1,
-                                openPullRequests = 0,
-                                openIssues = 0,
-                                username = username,
-                            )
-                        }
-                    },
-            )
+        app = App(messenger = dummyMessenger, gitHubApiClient = gitHubApiClient)
     }
 
     @Test
     fun `handleRequest 메서드는 성공 메시지와 기여를 리턴한다`() {
         val consoleLoggerContext = ConsoleLoggerLambdaContext()
+        val contributes = createTodayGitHubContributes()
 
-        val actual =
-            app.handleRequest(
-                input = HandlerInput("hi"),
-                context = consoleLoggerContext,
-            )
+        val actual = app.handleRequest(input = HandlerInput("hi"), context = consoleLoggerContext)
 
-        assertEquals(
-            HandlerOutput(
-                message = "success.",
-                contributes =
-                    TodayGitHubContributes(
-                        commit = 1,
-                        openPullRequests = 0,
-                        openIssues = 0,
-                        username = "dummy",
-                    ),
-            ),
-            actual,
-        )
+        assertEquals(HandlerOutput("success.", contributes), actual)
     }
+
+    private fun createTodayGitHubContributes(
+        commit: Int = 1,
+        openPullRequests: Int = 0,
+        openIssues: Int = 0,
+        username: String = "dummy",
+    ) = TodayGitHubContributes(
+        commit = commit,
+        openPullRequests = openPullRequests,
+        openIssues = openIssues,
+        username = username,
+    )
+
+    private fun createDummyMessenger() =
+        object : Messenger {
+            override fun sendMessage(
+                text: String,
+                logger: Logger,
+            ) {
+                // do nothing
+            }
+
+            override fun sendGitHubContributesMessage(
+                contributes: TodayGitHubContributes,
+                logger: Logger,
+                now: LocalDateTime,
+            ) {
+                // do nothing
+            }
+        }
 }

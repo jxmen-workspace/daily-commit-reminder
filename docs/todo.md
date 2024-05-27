@@ -21,11 +21,13 @@
 - [x] 에러 발생시 텔레그램으로 메세지 전송
 - [x] github actions에서 배포 자동화
 - [x] Pull Reqeust 생성한 이벤트만 집계에 추가
-- [x] issue/pull reuqest/commit 개수 세분화
+- [x] commit/issue/pr 개수 세분화
 - [x] 텔레그램에 보낼 텍스트 예쁘게 다듬기
 
 ### after 1.0.0 (refactoring, test, ci, etc ...)
 
 - [x] github actions aws cli 배포 arn 기반으로 변경
 - [x] lambda 버전도 같이 배포 - 설명에 마지막 커밋 값 설정
+- [ ] commit 가져오는 개수 30개에서 오늘 마지막 커밋까지 가져오도록 수정
 - [ ] 테스트 코드 추가
+- [ ] repository 생성, fork 시에도 집계 추가
