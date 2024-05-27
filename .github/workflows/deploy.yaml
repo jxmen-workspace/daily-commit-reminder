@@ -61,5 +61,5 @@ jobs:
       - name: AWS Lambda Publish Version
         run: |
           aws lambda publish-version \
-            --function-name ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}
+            --function-name ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }} \
             --description "${{ steps.get_tag_name.outputs.TAG }} - ${{ steps.get_short_sha.outputs.SHA }}"
