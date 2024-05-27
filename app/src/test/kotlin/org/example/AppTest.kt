@@ -10,6 +10,7 @@ import org.example.github.dto.TodayGitHubContributes
 import org.example.messenger.Messenger
 import org.example.support.logger.Logger
 import org.junit.jupiter.api.BeforeEach
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -30,6 +31,7 @@ class AppTest {
                 override fun sendGitHubContributesMessage(
                     contributes: TodayGitHubContributes,
                     logger: Logger,
+                    now: LocalDateTime,
                 ) {
                     logger.log("sendGitHubActivityMessage")
                 }

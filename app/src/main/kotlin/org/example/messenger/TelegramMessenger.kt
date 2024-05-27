@@ -7,6 +7,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class TelegramMessenger(
     botToken: String,
@@ -14,6 +15,10 @@ class TelegramMessenger(
     private val chatId: String, // 메시지를 보낼 채팅방 ID
     private val logger: Logger = ConsoleLogger(),
 ) : TelegramLongPollingBot(botToken), Messenger {
+    companion object {
+        val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    }
+
     override fun getBotUsername(): String {
         return botUsername
     }
@@ -37,16 +42,15 @@ class TelegramMessenger(
     override fun sendGitHubContributesMessage(
         contributes: TodayGitHubContributes,
         logger: Logger,
+        now: LocalDateTime,
     ) {
-        val now = LocalDateTime.now()
-
         val message =
             contributes.let {
                 if (it.total == 0) {
                     """
                     |=======================
                     |❌ Today's GitHub Contributes
-                    |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
+                    |Date: ${now.format(dateFormatter)}
                     |Name: ${it.username}
                     |Link: https://github.com/${it.username}
                     |=======================
@@ -56,7 +60,7 @@ class TelegramMessenger(
                     """
                     |=======================
                     |✅ Today's GitHub Contributes
-                    |Date: ${now.year}-${String.format("%02d", now.monthValue)}-${now.dayOfMonth}
+                    |Date: ${now.format(dateFormatter)}
                     |Name: ${it.username}
                     |Link: https://github.com/${it.username}
                     |=======================
