@@ -50,60 +50,81 @@ class OkHttpGitHubApiClient(
 
     override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
         val todayPushEvents = mutableSetOf<GitHubPublicEventOfaUser>()
-        var todayOpenIssueCounts = 0
-        var todayOpenPullRequestCounts = 0
+        var todayOpenIssueCount = 0
+        var todayOpenPullRequestCount = 0
 
         logger.log("Start Calculating Today's Commit Count")
 
         // 이벤트 목록을 조회한다. push 이벤트의 경우 커밋을 조회하기 위해 별도로 저장한다.
-        while (page < MAX_PAGE) {
-            logger.log("Fetching GitHub API page: $page")
-            val response: String? = fetchUserEvents(page = page, perPage = perPage)
+        while (eventFetchPage < EVENT_FETCH_MAX_PAGE) {
+            logger.log("Start Fetching GitHub Event. page: $eventFetchPage")
+            val response: String? = fetchUserEvents(page = eventFetchPage)
             val events: List<GitHubPublicEventOfaUser> = deserializeToEvents(response)
             events.forEach { event ->
                 when {
                     event.isTodayPushEvent() -> todayPushEvents.add(event)
-                    event.isTodayOpenIssuesEvent() -> todayOpenIssueCounts++
-                    event.isTodayOpenPullRequestEvent() -> todayOpenPullRequestCounts++
+                    event.isTodayOpenIssuesEvent() -> todayOpenIssueCount++
+                    event.isTodayOpenPullRequestEvent() -> todayOpenPullRequestCount++
                 }
             }
 
             val todayEventCounts = events.filter { it.isToday() }.size
-            if (todayEventCounts < perPage) {
+            if (todayEventCounts < EVENT_PER_PAGE) {
+                break
+            } else {
+                eventFetchPage++
+            }
+        }
+        if (eventFetchPage == EVENT_FETCH_MAX_PAGE) logger.log("Event Fetch Page is over the limit: $EVENT_FETCH_MAX_PAGE")
+
+        // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
+        var todayCommitCount = 0
+        val repositoryCommitsMap: Map<String, Set<GitHubPublicEventOfaUser>> = groupCommitByRepository(todayPushEvents)
+        for ((repositoryName, _) in repositoryCommitsMap) {
+            logger.log("Start Fetching commits of '$repositoryName'")
+
+            val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
+
+            todayCommitCount += todayRepoCommits.size
+            logger.log("today's '$repositoryName' commit count: ${todayRepoCommits.size}")
+        }
+
+        logger.log("today's commit count: $todayCommitCount")
+        logger.log("today's issue count: $todayOpenIssueCount")
+        logger.log("today's pull request count: $todayOpenPullRequestCount")
+        logger.log("End of Calculating Today's Commit Count")
+
+        return TodayGitHubContributes(
+            username = username,
+            commit = todayCommitCount,
+            openIssues = todayOpenIssueCount,
+            openPullRequests = todayOpenPullRequestCount,
+        )
+    }
+
+    private fun getGitHubTodayRepoCommits(
+        repositoryName: String,
+        logger: Logger,
+    ): Set<GitHubCommit> {
+        var page = 1
+        val todayCommits = mutableSetOf<GitHubCommit>()
+
+        while (page < COMMIT_FETCH_MAX_PAGE) {
+            logger.log("Fetching commits of '$repositoryName' page: $page")
+            val response: String? = fetchUserCommits(repositoryName = repositoryName, page = page)
+            val todayCommitsFromResponse = deserializeToCommits(response).filter { it.isToday() }
+            todayCommits.addAll(todayCommitsFromResponse)
+
+            if (todayCommitsFromResponse.size < COMMIT_PER_PAGE) {
                 break
             } else {
                 page++
             }
         }
 
-        var todayCommitCounts = 0
+        if (page == COMMIT_FETCH_MAX_PAGE) logger.log("Commit Fetch Page is over the limit: $COMMIT_FETCH_MAX_PAGE")
 
-        // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
-        val repositoryCommitsMap = groupCommitByRepository(todayPushEvents)
-        for ((repositoryName, pushEvents) in repositoryCommitsMap) {
-            logger.log("Fetching commits of '$repositoryName'")
-            val response: String? = fetchUserCommits(repositoryName)
-            val commits: List<GitHubCommit> = deserializeToCommits(response)
-
-            val todayCommits =
-                commits.filter { it.isToday() }
-                    .filter { commit -> pushEvents.any { pushEvent -> pushEvent.hasSameCommitSha(commit.sha) } }
-
-            todayCommitCounts += todayCommits.size
-            logger.log("today's '$repositoryName' commit count: ${todayCommits.size}")
-        }
-
-        logger.log("today's commit count: $todayCommitCounts")
-        logger.log("today's issue count: $todayOpenIssueCounts")
-        logger.log("today's pull request count: $todayOpenPullRequestCounts")
-        logger.log("End of Calculating Today's Commit Count")
-
-        return TodayGitHubContributes(
-            username = username,
-            commit = todayCommitCounts,
-            openIssues = todayOpenIssueCounts,
-            openPullRequests = todayOpenPullRequestCounts,
-        )
+        return todayCommits
     }
 
     private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
@@ -129,15 +150,18 @@ class OkHttpGitHubApiClient(
         return repositoryCommitsMap
     }
 
-    private fun deserializeToCommits(response: String?): List<GitHubCommit> {
-        val itemType = object : TypeToken<List<GitHubCommit>>() {}.type
-        val events: List<GitHubCommit> = gson.fromJson(response, itemType)
+    private fun deserializeToCommits(response: String?): Set<GitHubCommit> {
+        val itemType = object : TypeToken<Set<GitHubCommit>>() {}.type
+        val events: Set<GitHubCommit> = gson.fromJson(response, itemType)
 
         return events
     }
 
-    private fun fetchUserCommits(repositoryName: String): String? {
-        val request = buildFetchCommitsRequest(repositoryName)
+    private fun fetchUserCommits(
+        repositoryName: String,
+        page: Int,
+    ): String? {
+        val request = buildFetchCommitsRequest(repositoryName, page)
 
         val response =
             okHttpClient.newCall(request).execute().use { response ->
@@ -153,20 +177,20 @@ class OkHttpGitHubApiClient(
         return response
     }
 
-    private fun buildFetchCommitsRequest(repositoryName: String): Request {
+    private fun buildFetchCommitsRequest(
+        repositoryName: String,
+        page: Int,
+    ): Request {
         return Request.Builder()
-            .url("https://api.github.com/repos/$repositoryName/commits")
+            .url("https://api.github.com/repos/$repositoryName/commits?page=$page&per_page=$COMMIT_PER_PAGE")
             .header("Accept", "application/vnd.github.v3+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .header("Authorization", "token $token")
             .build()
     }
 
-    private fun fetchUserEvents(
-        page: Int,
-        perPage: Int,
-    ): String? {
-        val request = buildFetchUserEventRequest(page = page, perPage = perPage)
+    private fun fetchUserEvents(page: Int): String? {
+        val request = buildFetchUserEventRequest(page = page)
 
         return okHttpClient.newCall(request).execute().use { response ->
             if (response.code == 401) {
@@ -179,12 +203,9 @@ class OkHttpGitHubApiClient(
         }
     }
 
-    private fun buildFetchUserEventRequest(
-        page: Int,
-        perPage: Int,
-    ): Request {
+    private fun buildFetchUserEventRequest(page: Int): Request {
         return Request.Builder()
-            .url("https://api.github.com/users/$username/events?page=$page&per_page=$perPage")
+            .url("https://api.github.com/users/$username/events?page=$page&per_page=$EVENT_PER_PAGE")
             .header("Accept", "application/vnd.github.v3+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .header("Authorization", "token $token")
@@ -198,16 +219,18 @@ fun main() {
             username = System.getenv("GITHUB_USERNAME"),
             token = System.getenv("GITHUB_TOKEN"),
         )
-    val activity = client.getTodayContributes(logger = ConsoleLogger())
+    val contributes = client.getTodayContributes(logger = ConsoleLogger())
 
     println("=====================================")
     println(
         """
-        |Today's GitHub Activity
+        |Today's GitHub Contributes
         |=======================
-        |Commits: ${activity.commit}
-        |Open Issues: ${activity.openIssues}
-        |Open Pull Requests: ${activity.openPullRequests}
+        |Commits: ${contributes.commit}
+        |Open Issues: ${contributes.openIssues}
+        |Open Pull Requests: ${contributes.openPullRequests}
+        |=======================
+        |Total: ${contributes.total}
         """.trimMargin(),
     )
 }
