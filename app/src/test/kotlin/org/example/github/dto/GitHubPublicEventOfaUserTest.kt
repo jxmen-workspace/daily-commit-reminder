@@ -117,4 +117,34 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
             }
         }
     }
+
+    describe("getRepositoryName") {
+        context("pushEvent이면서 repository와 name이 있을 경우") {
+            it("repository 이름을 리턴한다") {
+                val event =
+                    GitHubPublicEventOfaUser(
+                        type = "PushEvent",
+                        repo = GitHubPublicEventOfaUserRepository(name = "jxmen/til"),
+                    )
+
+                event.getRepositoryName() shouldBe "jxmen/til"
+            }
+        }
+        context("type이 pushEvent가 아닐 경우") {
+            it("IllegalStateException을 던진다") {
+                val types = listOf("IssuesEvent", "PullRequestEvent", "WatchEvent", "CreateEvent")
+
+                types.forEach { type ->
+                    val event =
+                        GitHubPublicEventOfaUser(
+                            type = type,
+                            repo = GitHubPublicEventOfaUserRepository(name = "jxmen/til"),
+                        )
+
+                    runCatching { event.getRepositoryName() }.exceptionOrNull() shouldBe
+                        IllegalStateException("이벤트가 pushEvent type이 아니면 이 함수를 호출해서는 안됩니다. 타입: $type")
+                }
+            }
+        }
+    }
 })
