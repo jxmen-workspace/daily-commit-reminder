@@ -27,5 +27,5 @@
 ### after 1.0.0 (refactoring, test, ci, etc ...)
 
 - [x] github actions aws cli 배포 arn 기반으로 변경
+- [x] lambda 버전도 같이 배포 - 설명에 마지막 커밋 값 설정
 - [ ] 테스트 코드 추가
-- [ ] lambda 버전도 같이 배포 - 설명에 마지막 커밋 값 설정
