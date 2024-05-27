@@ -26,7 +26,7 @@ data class GitHubPublicEventOfaUser(
     val id: String,
     val type: String,
     val repo: GitHubPublicEventOfaUserRepository?,
-    val payload: GitHubPublicEventOfaUserPayload?,
+    val payload: GitHubPublicEventOfaUserPayload? = null,
     @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     constructor(type: String, createdAt: LocalDateTime, payload: GitHubPublicEventOfaUserPayload) : this(
@@ -35,6 +35,12 @@ data class GitHubPublicEventOfaUser(
         createdAt = createdAt,
         repo = null,
         payload = payload,
+    )
+
+    constructor(type: String, repo: GitHubPublicEventOfaUserRepository) : this(
+        id = null.toString(),
+        type = type,
+        repo = repo,
     )
 
     fun isToday(date: LocalDateTime = LocalDateTime.now()): Boolean {
@@ -67,5 +73,12 @@ data class GitHubPublicEventOfaUser(
         return isToday(date) &&
             type == "IssuesEvent" &&
             payload?.action == "opened"
+    }
+
+    fun getRepositoryName(): String? {
+        return when (type) {
+            "PushEvent" -> repo?.name
+            else -> error("이벤트가 pushEvent type이 아니면 이 함수를 호출해서는 안됩니다. 타입: $type")
+        }
     }
 }

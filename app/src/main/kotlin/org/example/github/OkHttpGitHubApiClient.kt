@@ -79,8 +79,8 @@ class OkHttpGitHubApiClient(
 
         // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
         var todayCommitCount = 0
-        val repositoryCommitsMap: Map<String, Set<GitHubPublicEventOfaUser>> = groupCommitByRepository(todayPushEvents)
-        for ((repositoryName, _) in repositoryCommitsMap) {
+        val repositoryNames: Set<String> = getRepositoryNames(todayPushEvents)
+        for (repositoryName in repositoryNames) {
             logger.log("Start Fetching commits of '$repositoryName'")
 
             val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
@@ -100,6 +100,13 @@ class OkHttpGitHubApiClient(
             openIssues = todayOpenIssueCount,
             openPullRequests = todayOpenPullRequestCount,
         )
+    }
+
+    private fun getRepositoryNames(todayPushEvents: Set<GitHubPublicEventOfaUser>): Set<String> {
+        val repoNames = mutableSetOf<String>()
+        todayPushEvents.forEach { it.getRepositoryName()?.let { repoNames.add(it) } }
+
+        return repoNames
     }
 
     private fun getGitHubTodayRepoCommits(
@@ -132,22 +139,6 @@ class OkHttpGitHubApiClient(
         val events: List<GitHubPublicEventOfaUser> = gson.fromJson(response, itemType)
 
         return events
-    }
-
-    private fun groupCommitByRepository(
-        todayPushEvents: Set<GitHubPublicEventOfaUser>,
-    ): MutableMap<String, Set<GitHubPublicEventOfaUser>> {
-        val repositoryCommitsMap = mutableMapOf<String, Set<GitHubPublicEventOfaUser>>()
-        todayPushEvents.forEach {
-            val repositoryName = it.repo!!.name
-            if (repositoryCommitsMap.containsKey(repositoryName)) {
-                repositoryCommitsMap[repositoryName] = repositoryCommitsMap[repositoryName]!!.plus(it)
-            } else {
-                repositoryCommitsMap[repositoryName] = setOf(it)
-            }
-        }
-
-        return repositoryCommitsMap
     }
 
     private fun deserializeToCommits(response: String?): Set<GitHubCommit> {
