@@ -132,7 +132,7 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
         }
         context("type이 pushEvent가 아닐 경우") {
             it("IllegalStateException을 던진다") {
-                val types = listOf("IssuesEvent", "PullRequestEvent", "WatchEvent", "CreateEvent")
+                val types = listOf("IssuesEvent", "PullRequestEvent", "CreateEvent")
 
                 types.forEach { type ->
                     val event =

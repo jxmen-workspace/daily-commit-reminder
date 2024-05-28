@@ -3,17 +3,15 @@ package org.example.github
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.example.github.dto.GitHubCommit
+import org.example.github.dto.GitHubEventType
 import org.example.github.dto.GitHubPublicEventOfaUser
 import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
-import java.lang.reflect.Type
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -23,6 +21,8 @@ class OkHttpGitHubApiClient(
     token: String,
 ) : GitHubApiClient(username = username, token = token) {
     companion object {
+        private const val ZONE_ID = "Asia/Seoul" // NOTE: Change the time zone if necessary
+
         private val okHttpClient = OkHttpClient()
         private val gson: Gson = createGson()
 
@@ -31,17 +31,16 @@ class OkHttpGitHubApiClient(
 
             gsonBuilder.registerTypeAdapter(
                 LocalDateTime::class.java,
-                object : JsonDeserializer<LocalDateTime> {
-                    override fun deserialize(
-                        json: JsonElement,
-                        typeOfT: Type,
-                        context: JsonDeserializationContext,
-                    ): LocalDateTime {
-                        // NOTE: 한국 시간대로 변환해야 커밋 개수가 정확하게 나온다.
-                        val instant = Instant.parse(json.asString)
-                        return LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"))
-                    }
+                JsonDeserializer { json, _, _ ->
+                    LocalDateTime.ofInstant(
+                        Instant.parse(json.asString),
+                        ZoneId.of(ZONE_ID),
+                    )
                 },
+            )
+            gsonBuilder.registerTypeAdapter(
+                GitHubEventType::class.java,
+                JsonDeserializer { json, _, _ -> GitHubEventType.valueOf(json.asString) },
             )
 
             return gsonBuilder.create()

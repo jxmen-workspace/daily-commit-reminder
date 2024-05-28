@@ -22,16 +22,25 @@ data class GitHubPublicEventOfaUserRepository(
     val name: String, // 'jxmen/til' 형태로 불러와짐
 )
 
+enum class GitHubEventType {
+    CreateEvent,
+    PushEvent,
+    PullRequestEvent,
+    IssuesEvent,
+    DeleteEvent,
+    WatchEvent,
+}
+
 data class GitHubPublicEventOfaUser(
     val id: String,
-    val type: String,
+    val type: GitHubEventType,
     val repo: GitHubPublicEventOfaUserRepository?,
     val payload: GitHubPublicEventOfaUserPayload? = null,
     @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     constructor(type: String, createdAt: LocalDateTime, payload: GitHubPublicEventOfaUserPayload) : this(
         id = null.toString(),
-        type = type,
+        type = GitHubEventType.valueOf(type),
         createdAt = createdAt,
         repo = null,
         payload = payload,
@@ -39,7 +48,7 @@ data class GitHubPublicEventOfaUser(
 
     constructor(type: String, repo: GitHubPublicEventOfaUserRepository) : this(
         id = null.toString(),
-        type = type,
+        type = GitHubEventType.valueOf(type),
         repo = repo,
     )
 
@@ -60,24 +69,24 @@ data class GitHubPublicEventOfaUser(
     }
 
     fun isTodayPushEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && type == "PushEvent"
+        return isToday(date) && type == GitHubEventType.PushEvent
     }
 
     fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
         return isToday(date) &&
-            type == "PullRequestEvent" &&
+            type == GitHubEventType.PullRequestEvent &&
             payload?.action == "opened"
     }
 
     fun isTodayOpenIssuesEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
         return isToday(date) &&
-            type == "IssuesEvent" &&
+            type == GitHubEventType.IssuesEvent &&
             payload?.action == "opened"
     }
 
     fun getRepositoryName(): String? {
         return when (type) {
-            "PushEvent" -> repo?.name
+            GitHubEventType.PushEvent -> repo?.name
             else -> error("이벤트가 pushEvent type이 아니면 이 함수를 호출해서는 안됩니다. 타입: $type")
         }
     }
