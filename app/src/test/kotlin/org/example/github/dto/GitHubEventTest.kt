@@ -87,14 +87,11 @@ class GitHubEventTest : DescribeSpec({
                 val event =
                     GitHubEvent(
                         type = "PullRequestEvent",
-                        createdAt = date.minusDays(1),
-                        payload =
-                            GitHubEventPayload(
-                                action = "opened",
-                            ),
+                        createdAt = date,
+                        payload = GitHubEventPayload(action = "opened"),
                     )
 
-                event.isTodayOpenPullRequestEvent(date) shouldBe false
+                event.isTodayOpenPullRequestEvent(date.minusNanos(1)) shouldBe false
             }
         }
 
@@ -197,6 +194,48 @@ class GitHubEventTest : DescribeSpec({
                     )
 
                 event.isTodayCreateRepositoryEvent(date) shouldBe false
+            }
+        }
+    }
+
+    describe("isTodayForkEvent") {
+
+        context("오늘 생성한 ForkEvent일 경우") {
+
+            it("true를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                val event = GitHubEvent(type = GitHubEventType.ForkEvent, createdAt = date)
+
+                event.isTodayForkEvent(date) shouldBe true
+                event.isTodayForkEvent(
+                    date.plusHours(23).plusMinutes(59).plusSeconds(59),
+                ) shouldBe true
+            }
+        }
+
+        context("오늘 생성하지 않은 ForkEvent일 경우") {
+
+            it("false를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                val event = GitHubEvent(type = GitHubEventType.ForkEvent, createdAt = date)
+
+                event.isTodayForkEvent(date.minusNanos(1)) shouldBe false
+                event.isTodayForkEvent(date.plusDays(1)) shouldBe false
+            }
+        }
+
+        context("오늘 생성했으나 ForkEvent가 아닐 경우") {
+
+            it("false를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                GitHubEventType.entries.filterNot { it == GitHubEventType.ForkEvent }.forEach { type ->
+                    println(type)
+                    val event = GitHubEvent(type = type, createdAt = date)
+                    event.isTodayForkEvent(date) shouldBe false
+                }
             }
         }
     }

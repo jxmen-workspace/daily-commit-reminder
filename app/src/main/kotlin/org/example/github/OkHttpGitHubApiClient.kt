@@ -62,24 +62,27 @@ class OkHttpGitHubApiClient(
     }
 
     override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
-        val todayPushEvents = mutableSetOf<GitHubEvent>()
-        var todayCreateRepositoryCount = 0
+        val todayPushedRepositoryNames = mutableSetOf<String>()
+
         var todayOpenIssueCount = 0
         var todayOpenPullRequestCount = 0
+        var todayCreateRepositoryCount = 0
+        var todayForkCount = 0
 
         logger.log("Start Calculating Today's Commit Count")
 
-        // 이벤트 목록을 조회한다. push 이벤트의 경우 커밋을 조회하기 위해 별도로 저장한다.
+        // 이벤트 목록을 조회한다. push 이벤트의 경우 커밋을 조회하기 위해 이름을 별도로 저장한다.
         while (eventFetchPage < EVENT_FETCH_MAX_PAGE) {
             logger.log("Start Fetching GitHub Event. page: $eventFetchPage")
             val response: String? = fetchUserEvents(page = eventFetchPage)
             val events: List<GitHubEvent> = deserializeToEvents(response)
             events.forEach { event ->
                 when {
-                    event.isTodayPushEvent() -> todayPushEvents.add(event)
-                    event.isTodayCreateRepositoryEvent() -> todayCreateRepositoryCount++
+                    event.isTodayPushEvent() -> event.getRepositoryName()?.let { todayPushedRepositoryNames.add(it) }
                     event.isTodayOpenIssuesEvent() -> todayOpenIssueCount++
                     event.isTodayOpenPullRequestEvent() -> todayOpenPullRequestCount++
+                    event.isTodayCreateRepositoryEvent() -> todayCreateRepositoryCount++
+                    event.isTodayForkEvent() -> todayForkCount++
                 }
             }
 
@@ -93,9 +96,28 @@ class OkHttpGitHubApiClient(
         if (eventFetchPage == EVENT_FETCH_MAX_PAGE) logger.log("Event Fetch Page is over the limit: $EVENT_FETCH_MAX_PAGE")
 
         // 커밋을 repository 별로 그룹화하고 커밋을 조회하여 오늘 커밋한 커밋을 찾는다.
+        val todayCommitCount = getTodayCommitCount(todayPushedRepositoryNames, logger)
+        val contributes =
+            TodayGitHubContributes(
+                username = username,
+                commit = todayCommitCount,
+                openIssues = todayOpenIssueCount,
+                openPullRequests = todayOpenPullRequestCount,
+                createRepository = todayCreateRepositoryCount,
+                fork = todayForkCount,
+            )
+        logContributes(contributes, logger)
+        logger.log("End of Calculating Today's Commit Count")
+
+        return contributes
+    }
+
+    private fun getTodayCommitCount(
+        todayPushedRepositoryNames: Set<String>,
+        logger: Logger,
+    ): Int {
         var todayCommitCount = 0
-        val repositoryNames: Set<String> = getRepositoryNames(todayPushEvents)
-        for (repositoryName in repositoryNames) {
+        for (repositoryName in todayPushedRepositoryNames) {
             logger.log("Start Fetching commits of '$repositoryName'")
 
             val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
@@ -103,27 +125,18 @@ class OkHttpGitHubApiClient(
             todayCommitCount += todayRepoCommits.size
             logger.log("today's '$repositoryName' commit count: ${todayRepoCommits.size}")
         }
-
-        logger.log("today's commit count: $todayCommitCount")
-        logger.log("today's issue count: $todayOpenIssueCount")
-        logger.log("today's pull request count: $todayOpenPullRequestCount")
-        logger.log("today's create repository count: $todayCreateRepositoryCount")
-        logger.log("End of Calculating Today's Commit Count")
-
-        return TodayGitHubContributes(
-            username = username,
-            commit = todayCommitCount,
-            openIssues = todayOpenIssueCount,
-            openPullRequests = todayOpenPullRequestCount,
-            createRepository = todayCreateRepositoryCount,
-        )
+        return todayCommitCount
     }
 
-    private fun getRepositoryNames(todayPushEvents: Set<GitHubEvent>): Set<String> {
-        val repoNames = mutableSetOf<String>()
-        todayPushEvents.forEach { it.getRepositoryName()?.let { repoNames.add(it) } }
-
-        return repoNames
+    private fun logContributes(
+        contributes: TodayGitHubContributes,
+        logger: Logger,
+    ) {
+        logger.log("today's commit count: ${contributes.commit}")
+        logger.log("today's issue count: ${contributes.openIssues}")
+        logger.log("today's pull request count: ${contributes.openPullRequests}")
+        logger.log("today's create repository count: ${contributes.createRepository}")
+        logger.log("today's fork count: ${contributes.fork}")
     }
 
     private fun getGitHubTodayRepoCommits(
@@ -238,6 +251,7 @@ fun main() {
         |Open Issues: ${contributes.openIssues}
         |Open Pull Requests: ${contributes.openPullRequests}
         |Create Repository: ${contributes.createRepository}
+        |Fork: ${contributes.fork}
         |=======================
         |Total: ${contributes.total}
         """.trimMargin(),

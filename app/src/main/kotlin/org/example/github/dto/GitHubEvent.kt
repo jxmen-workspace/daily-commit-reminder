@@ -9,7 +9,9 @@ data class GitHubEventPayloadCommit(
 )
 
 enum class GitHubEventPayloadAction(val str: String) {
-    Opened("opened"), ;
+    Opened("opened"),
+    Closed("closed"),
+    ;
 
     companion object {
         fun findByName(name: String?): GitHubEventPayloadAction {
@@ -19,17 +21,34 @@ enum class GitHubEventPayloadAction(val str: String) {
     }
 }
 
+enum class GtiHubEventPayloadRefType(val str: String) {
+    Branch("branch"),
+    Repository("repository"),
+    Tag("tag"),
+    ;
+
+    companion object {
+        fun findByName(value: String): GtiHubEventPayloadRefType {
+            return entries.find { it.str == value }
+                ?: error("해당하는 값이 없습니다. value: $value")
+        }
+    }
+}
+
+data class GitHubEventPayloadPullRequest(val title: String, val state: String)
+
 data class GitHubEventPayload(
     val commits: List<GitHubEventPayloadCommit>?,
-    val action: String?,
+    val action: GitHubEventPayloadAction?,
     @SerializedName("ref_type") val refType: GtiHubEventPayloadRefType?,
+    @SerializedName("pull_request") val pullReqeust: GitHubEventPayloadPullRequest? = null,
 ) {
     fun isRepositoryRefType(): Boolean {
         return refType == GtiHubEventPayloadRefType.Repository
     }
 
     constructor(action: String) : this(
-        action = action,
+        action = GitHubEventPayloadAction.findByName(action),
         commits = null,
         refType = null,
     )
@@ -39,19 +58,6 @@ data class GitHubEventPayload(
         action = null,
         refType = refType,
     )
-}
-
-enum class GtiHubEventPayloadRefType(val str: String) {
-    Branch("branch"),
-    Repository("repository"),
-    ;
-
-    companion object {
-        fun findByName(value: String): GtiHubEventPayloadRefType {
-            return entries.find { it.str == value }
-                ?: error("해당하는 값이 없습니다. value: $value")
-        }
-    }
 }
 
 data class GitHubEventRepository(
@@ -65,6 +71,7 @@ enum class GitHubEventType {
     IssuesEvent,
     DeleteEvent,
     WatchEvent,
+    ForkEvent,
 }
 
 data class GitHubEvent(
@@ -96,6 +103,14 @@ data class GitHubEvent(
         payload = payload,
     )
 
+    constructor(type: GitHubEventType, createdAt: LocalDateTime) : this(
+        id = null.toString(),
+        type = type,
+        createdAt = createdAt,
+        repo = null,
+        payload = null,
+    )
+
     fun isToday(date: LocalDateTime = LocalDateTime.now()): Boolean {
         if (createdAt.year != date.year) {
             return false
@@ -117,15 +132,13 @@ data class GitHubEvent(
     }
 
     fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) &&
-            type == GitHubEventType.PullRequestEvent &&
-            payload?.action == "opened"
+        return isToday(date) && type == GitHubEventType.PullRequestEvent &&
+            payload?.let { it.action == GitHubEventPayloadAction.Opened } == true
     }
 
     fun isTodayOpenIssuesEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) &&
-            type == GitHubEventType.IssuesEvent &&
-            payload?.action == "opened"
+        return isToday(date) && type == GitHubEventType.IssuesEvent &&
+            payload?.let { it.action == GitHubEventPayloadAction.Opened } == true
     }
 
     fun getRepositoryName(): String? {
@@ -139,5 +152,9 @@ data class GitHubEvent(
         return isToday(date) &&
             type == GitHubEventType.CreateEvent &&
             payload?.isRepositoryRefType() == true
+    }
+
+    fun isTodayForkEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
+        return isToday(date) && type == GitHubEventType.ForkEvent
     }
 }

@@ -6,5 +6,6 @@ data class TodayGitHubContributes(
     val openPullRequests: Int,
     val openIssues: Int,
     val createRepository: Int,
-    val total: Int = (commit + openPullRequests + openIssues + createRepository),
+    val fork: Int,
+    val total: Int = (commit + openPullRequests + openIssues + createRepository + fork),
 )
