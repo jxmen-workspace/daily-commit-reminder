@@ -8,14 +8,50 @@ data class GitHubEventPayloadCommit(
     val message: String,
 )
 
+enum class GitHubEventPayloadAction(val str: String) {
+    Opened("opened"), ;
+
+    companion object {
+        fun findByName(name: String?): GitHubEventPayloadAction {
+            return entries.find { it.str == name }
+                ?: error("해당하는 값이 없습니다. value: $name")
+        }
+    }
+}
+
 data class GitHubEventPayload(
     val commits: List<GitHubEventPayloadCommit>?,
     val action: String?,
+    @SerializedName("ref_type") val refType: GtiHubEventPayloadRefType?,
 ) {
+    fun isRepositoryRefType(): Boolean {
+        return refType == GtiHubEventPayloadRefType.Repository
+    }
+
     constructor(action: String) : this(
-        commits = null,
         action = action,
+        commits = null,
+        refType = null,
     )
+
+    constructor(refType: GtiHubEventPayloadRefType) : this(
+        commits = null,
+        action = null,
+        refType = refType,
+    )
+}
+
+enum class GtiHubEventPayloadRefType(val str: String) {
+    Branch("branch"),
+    Repository("repository"),
+    ;
+
+    companion object {
+        fun findByName(value: String): GtiHubEventPayloadRefType {
+            return entries.find { it.str == value }
+                ?: error("해당하는 값이 없습니다. value: $value")
+        }
+    }
 }
 
 data class GitHubEventRepository(
@@ -50,6 +86,14 @@ data class GitHubEvent(
         id = null.toString(),
         type = GitHubEventType.valueOf(type),
         repo = repo,
+    )
+
+    constructor(type: GitHubEventType, createdAt: LocalDateTime, payload: GitHubEventPayload) : this(
+        id = null.toString(),
+        type = type,
+        createdAt = createdAt,
+        repo = null,
+        payload = payload,
     )
 
     fun isToday(date: LocalDateTime = LocalDateTime.now()): Boolean {
@@ -89,5 +133,11 @@ data class GitHubEvent(
             GitHubEventType.PushEvent -> repo?.name
             else -> error("이벤트가 pushEvent type이 아니면 이 함수를 호출해서는 안됩니다. 타입: $type")
         }
+    }
+
+    fun isTodayCreateRepositoryEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
+        return isToday(date) &&
+            type == GitHubEventType.CreateEvent &&
+            payload?.isRepositoryRefType() == true
     }
 }

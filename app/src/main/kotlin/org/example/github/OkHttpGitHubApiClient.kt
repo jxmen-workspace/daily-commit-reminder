@@ -8,7 +8,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.example.github.dto.GitHubCommit
 import org.example.github.dto.GitHubEvent
+import org.example.github.dto.GitHubEventPayloadAction
 import org.example.github.dto.GitHubEventType
+import org.example.github.dto.GtiHubEventPayloadRefType
 import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
@@ -42,6 +44,18 @@ class OkHttpGitHubApiClient(
                 GitHubEventType::class.java,
                 JsonDeserializer { json, _, _ -> GitHubEventType.valueOf(json.asString) },
             )
+            gsonBuilder.registerTypeAdapter(
+                GtiHubEventPayloadRefType::class.java,
+                JsonDeserializer { json, _, _ ->
+                    GtiHubEventPayloadRefType.findByName(json.asString)
+                },
+            )
+            gsonBuilder.registerTypeAdapter(
+                GitHubEventPayloadAction::class.java,
+                JsonDeserializer { json, _, _ ->
+                    GitHubEventPayloadAction.findByName(json.asString)
+                },
+            )
 
             return gsonBuilder.create()
         }
@@ -49,6 +63,7 @@ class OkHttpGitHubApiClient(
 
     override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
         val todayPushEvents = mutableSetOf<GitHubEvent>()
+        var todayCreateRepositoryCount = 0
         var todayOpenIssueCount = 0
         var todayOpenPullRequestCount = 0
 
@@ -62,6 +77,7 @@ class OkHttpGitHubApiClient(
             events.forEach { event ->
                 when {
                     event.isTodayPushEvent() -> todayPushEvents.add(event)
+                    event.isTodayCreateRepositoryEvent() -> todayCreateRepositoryCount++
                     event.isTodayOpenIssuesEvent() -> todayOpenIssueCount++
                     event.isTodayOpenPullRequestEvent() -> todayOpenPullRequestCount++
                 }
@@ -91,6 +107,7 @@ class OkHttpGitHubApiClient(
         logger.log("today's commit count: $todayCommitCount")
         logger.log("today's issue count: $todayOpenIssueCount")
         logger.log("today's pull request count: $todayOpenPullRequestCount")
+        logger.log("today's create repository count: $todayCreateRepositoryCount")
         logger.log("End of Calculating Today's Commit Count")
 
         return TodayGitHubContributes(
@@ -98,6 +115,7 @@ class OkHttpGitHubApiClient(
             commit = todayCommitCount,
             openIssues = todayOpenIssueCount,
             openPullRequests = todayOpenPullRequestCount,
+            createRepository = todayCreateRepositoryCount,
         )
     }
 
@@ -219,6 +237,7 @@ fun main() {
         |Commits: ${contributes.commit}
         |Open Issues: ${contributes.openIssues}
         |Open Pull Requests: ${contributes.openPullRequests}
+        |Create Repository: ${contributes.createRepository}
         |=======================
         |Total: ${contributes.total}
         """.trimMargin(),

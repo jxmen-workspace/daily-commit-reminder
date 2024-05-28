@@ -147,4 +147,57 @@ class GitHubEventTest : DescribeSpec({
             }
         }
     }
+
+    describe("isTodayCreateRepositoryEvent") {
+
+        context("오늘 생성하고 Repository를 생성한 이벤트일 경우") {
+
+            it("true를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                val event =
+                    GitHubEvent(
+                        type = GitHubEventType.CreateEvent,
+                        createdAt = date,
+                        payload = GitHubEventPayload(refType = GtiHubEventPayloadRefType.Repository),
+                    )
+
+                event.isTodayCreateRepositoryEvent(date) shouldBe true
+                event.isTodayCreateRepositoryEvent(date.plusHours(23).plusMinutes(59)) shouldBe true
+            }
+        }
+
+        context("오늘 생성하지 않은 Repository를 생성한 이벤트일 경우") {
+
+            it("false를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                val event =
+                    GitHubEvent(
+                        type = GitHubEventType.CreateEvent,
+                        createdAt = date,
+                        payload = GitHubEventPayload(refType = GtiHubEventPayloadRefType.Repository),
+                    )
+
+                event.isTodayCreateRepositoryEvent(date.minusSeconds(1)) shouldBe false
+                event.isTodayCreateRepositoryEvent(date.plusDays(1)) shouldBe false
+            }
+        }
+
+        context("오늘 생성했지만 Repository 생성이 아닌 이벤트일 경우") {
+
+            it("false를 리턴한다") {
+                val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
+
+                val event =
+                    GitHubEvent(
+                        type = GitHubEventType.CreateEvent,
+                        createdAt = date,
+                        payload = GitHubEventPayload(refType = GtiHubEventPayloadRefType.Branch),
+                    )
+
+                event.isTodayCreateRepositoryEvent(date) shouldBe false
+            }
+        }
+    }
 })
