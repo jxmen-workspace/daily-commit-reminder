@@ -7,8 +7,8 @@ import com.google.gson.JsonDeserializer
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.example.github.dto.GitHubCommit
+import org.example.github.dto.GitHubEvent
 import org.example.github.dto.GitHubEventType
-import org.example.github.dto.GitHubPublicEventOfaUser
 import org.example.github.dto.TodayGitHubContributes
 import org.example.support.logger.ConsoleLogger
 import org.example.support.logger.Logger
@@ -48,7 +48,7 @@ class OkHttpGitHubApiClient(
     }
 
     override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
-        val todayPushEvents = mutableSetOf<GitHubPublicEventOfaUser>()
+        val todayPushEvents = mutableSetOf<GitHubEvent>()
         var todayOpenIssueCount = 0
         var todayOpenPullRequestCount = 0
 
@@ -58,7 +58,7 @@ class OkHttpGitHubApiClient(
         while (eventFetchPage < EVENT_FETCH_MAX_PAGE) {
             logger.log("Start Fetching GitHub Event. page: $eventFetchPage")
             val response: String? = fetchUserEvents(page = eventFetchPage)
-            val events: List<GitHubPublicEventOfaUser> = deserializeToEvents(response)
+            val events: List<GitHubEvent> = deserializeToEvents(response)
             events.forEach { event ->
                 when {
                     event.isTodayPushEvent() -> todayPushEvents.add(event)
@@ -101,7 +101,7 @@ class OkHttpGitHubApiClient(
         )
     }
 
-    private fun getRepositoryNames(todayPushEvents: Set<GitHubPublicEventOfaUser>): Set<String> {
+    private fun getRepositoryNames(todayPushEvents: Set<GitHubEvent>): Set<String> {
         val repoNames = mutableSetOf<String>()
         todayPushEvents.forEach { it.getRepositoryName()?.let { repoNames.add(it) } }
 
@@ -133,9 +133,9 @@ class OkHttpGitHubApiClient(
         return todayCommits
     }
 
-    private fun deserializeToEvents(response: String?): List<GitHubPublicEventOfaUser> {
-        val itemType = object : TypeToken<List<GitHubPublicEventOfaUser>>() {}.type
-        val events: List<GitHubPublicEventOfaUser> = gson.fromJson(response, itemType)
+    private fun deserializeToEvents(response: String?): List<GitHubEvent> {
+        val itemType = object : TypeToken<List<GitHubEvent>>() {}.type
+        val events: List<GitHubEvent> = gson.fromJson(response, itemType)
 
         return events
     }
