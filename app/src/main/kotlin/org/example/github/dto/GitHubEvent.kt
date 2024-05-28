@@ -3,13 +3,13 @@ package org.example.github.dto
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 
-data class GitHubPublicEventPayloadCommit(
+data class GitHubEventPayloadCommit(
     val sha: String,
     val message: String,
 )
 
-data class GitHubPublicEventOfaUserPayload(
-    val commits: List<GitHubPublicEventPayloadCommit>?,
+data class GitHubEventPayload(
+    val commits: List<GitHubEventPayloadCommit>?,
     val action: String?,
 ) {
     constructor(action: String) : this(
@@ -18,7 +18,7 @@ data class GitHubPublicEventOfaUserPayload(
     )
 }
 
-data class GitHubPublicEventOfaUserRepository(
+data class GitHubEventRepository(
     val name: String, // 'jxmen/til' 형태로 불러와짐
 )
 
@@ -31,14 +31,14 @@ enum class GitHubEventType {
     WatchEvent,
 }
 
-data class GitHubPublicEventOfaUser(
+data class GitHubEvent(
     val id: String,
     val type: GitHubEventType,
-    val repo: GitHubPublicEventOfaUserRepository?,
-    val payload: GitHubPublicEventOfaUserPayload? = null,
+    val repo: GitHubEventRepository?,
+    val payload: GitHubEventPayload? = null,
     @SerializedName("created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    constructor(type: String, createdAt: LocalDateTime, payload: GitHubPublicEventOfaUserPayload) : this(
+    constructor(type: String, createdAt: LocalDateTime, payload: GitHubEventPayload) : this(
         id = null.toString(),
         type = GitHubEventType.valueOf(type),
         createdAt = createdAt,
@@ -46,7 +46,7 @@ data class GitHubPublicEventOfaUser(
         payload = payload,
     )
 
-    constructor(type: String, repo: GitHubPublicEventOfaUserRepository) : this(
+    constructor(type: String, repo: GitHubEventRepository) : this(
         id = null.toString(),
         type = GitHubEventType.valueOf(type),
         repo = repo,

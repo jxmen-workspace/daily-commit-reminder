@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
-class GitHubPublicEventOfaUserTest : DescribeSpec({
+class GitHubEventTest : DescribeSpec({
 
     describe("isTodayOpenIssueEvent") {
         context("오늘 생성한 Issue 이벤트일 경우") {
@@ -13,10 +13,10 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "IssuesEvent",
                         createdAt = date,
-                        payload = GitHubPublicEventOfaUserPayload(action = "opened"),
+                        payload = GitHubEventPayload(action = "opened"),
                     )
 
                 event.isTodayOpenIssuesEvent(date) shouldBe true
@@ -29,11 +29,11 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "IssuesEvent",
                         createdAt = date.minusDays(1),
                         payload =
-                            GitHubPublicEventOfaUserPayload(
+                            GitHubEventPayload(
                                 action = "opened",
                             ),
                     )
@@ -48,11 +48,11 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "IssuesEvent",
                         createdAt = date,
                         payload =
-                            GitHubPublicEventOfaUserPayload(
+                            GitHubEventPayload(
                                 action = "closed",
                             ),
                     )
@@ -69,10 +69,10 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "PullRequestEvent",
                         createdAt = date,
-                        payload = GitHubPublicEventOfaUserPayload(action = "opened"),
+                        payload = GitHubEventPayload(action = "opened"),
                     )
 
                 event.isTodayOpenPullRequestEvent(date) shouldBe true
@@ -85,11 +85,11 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "PullRequestEvent",
                         createdAt = date.minusDays(1),
                         payload =
-                            GitHubPublicEventOfaUserPayload(
+                            GitHubEventPayload(
                                 action = "opened",
                             ),
                     )
@@ -104,11 +104,11 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
                 val date = LocalDateTime.of(2024, 5, 26, 0, 0, 0)
 
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "PullRequestEvent",
                         createdAt = date,
                         payload =
-                            GitHubPublicEventOfaUserPayload(
+                            GitHubEventPayload(
                                 action = "closed",
                             ),
                     )
@@ -122,9 +122,9 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
         context("pushEvent이면서 repository와 name이 있을 경우") {
             it("repository 이름을 리턴한다") {
                 val event =
-                    GitHubPublicEventOfaUser(
+                    GitHubEvent(
                         type = "PushEvent",
-                        repo = GitHubPublicEventOfaUserRepository(name = "jxmen/til"),
+                        repo = GitHubEventRepository(name = "jxmen/til"),
                     )
 
                 event.getRepositoryName() shouldBe "jxmen/til"
@@ -136,9 +136,9 @@ class GitHubPublicEventOfaUserTest : DescribeSpec({
 
                 types.forEach { type ->
                     val event =
-                        GitHubPublicEventOfaUser(
+                        GitHubEvent(
                             type = type,
-                            repo = GitHubPublicEventOfaUserRepository(name = "jxmen/til"),
+                            repo = GitHubEventRepository(name = "jxmen/til"),
                         )
 
                     runCatching { event.getRepositoryName() }.exceptionOrNull() shouldBe
