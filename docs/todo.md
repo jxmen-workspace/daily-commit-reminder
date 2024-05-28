@@ -33,6 +33,6 @@
 - [x] repository 생성, fork 시에도 집계하도록 수정
   - [x] repository 생성시 집계
   - [x] fork 시 집계
-- [ ] 커밋 메시지도 deserialize 대상에 추가
+- [x] 커밋 메시지도 deserialize 대상에 추가
 - [ ] 테스트 코드 추가
 - [ ] CI시 배포할 파일명 환경변수로 분리
