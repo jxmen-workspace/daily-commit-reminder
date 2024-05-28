@@ -29,5 +29,7 @@
 - [x] github actions aws cli 배포 arn 기반으로 변경
 - [x] lambda 버전도 같이 배포 - 설명에 마지막 커밋 값 설정
 - [x] commit 가져오는 개수 30개에서 오늘 마지막 커밋까지 가져오도록 수정
-- [ ] 테스트 코드 추가
+- [ ] gson deserialize 시 event type enum으로 리팩토링
 - [ ] repository 생성, fork 시에도 집계 추가
+- [ ] 테스트 코드 추가
+- [ ] CI시 배포할 파일명 환경변수로 분리
