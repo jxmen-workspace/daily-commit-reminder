@@ -48,10 +48,11 @@ class AppTest {
         openIssues: Int = 0,
         username: String = "dummy",
     ) = TodayGitHubContributes(
+        username = username,
         commit = commit,
         openPullRequests = openPullRequests,
         openIssues = openIssues,
-        username = username,
+        createRepository = todayCreateRepositoryCount,
     )
 
     private fun createDummyMessenger() =
