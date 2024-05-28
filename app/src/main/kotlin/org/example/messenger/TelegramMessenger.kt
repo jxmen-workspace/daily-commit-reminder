@@ -68,6 +68,7 @@ class TelegramMessenger(
                     |Open Issues: ${it.openIssues}
                     |Open Pull Requests: ${it.openPullRequests}
                     |Create Repository: ${it.createRepository}
+                    |Fork Repository: ${it.fork}
                     |
                     |Total: ${it.total}
                     """.trimMargin()
