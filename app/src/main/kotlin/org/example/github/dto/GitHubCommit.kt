@@ -4,7 +4,12 @@ import java.time.LocalDateTime
 
 data class Author(val date: LocalDateTime)
 
-data class Commit(val author: Author, val message: String)
+data class Commit(val author: Author, val message: String) {
+    constructor(author: Author) : this(
+        author = author,
+        message = "",
+    )
+}
 
 data class GitHubCommit(
     val sha: String,

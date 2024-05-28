@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 class GitHubCommitTest : DescribeSpec({
 
-    describe("GitHubCommit") {
+    describe("isToday()") {
         val date = LocalDateTime.of(2024, 5, 25, 0, 0, 0)
 
         context("동일한 날짜일 경우") {
@@ -23,6 +23,7 @@ class GitHubCommitTest : DescribeSpec({
                 val commit = GitHubCommit(sha = "sha", commit = Commit(author = Author(date = date)))
 
                 commit.isToday(date = date.plusDays(1)) shouldBe false
+                commit.isToday(date = date.minusNanos(1)) shouldBe false
             }
         }
     }
