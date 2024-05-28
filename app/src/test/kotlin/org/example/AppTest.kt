@@ -47,12 +47,15 @@ class AppTest {
         openPullRequests: Int = 0,
         openIssues: Int = 0,
         username: String = "dummy",
+        todayCreateRepositoryCount: Int = 0,
+        todayForkCount: Int = 0,
     ) = TodayGitHubContributes(
         username = username,
         commit = commit,
         openPullRequests = openPullRequests,
         openIssues = openIssues,
         createRepository = todayCreateRepositoryCount,
+        fork = todayForkCount,
     )
 
     private fun createDummyMessenger() =
