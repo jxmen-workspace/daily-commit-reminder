@@ -4,6 +4,11 @@ import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.example.github.dto.GitHubCommit
@@ -21,6 +26,7 @@ import java.time.ZoneId
 class OkHttpGitHubApiClient(
     username: String,
     token: String,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : GitHubApiClient(username = username, token = token) {
     companion object {
         private const val ZONE_ID = "Asia/Seoul" // NOTE: Change the time zone if necessary
@@ -61,7 +67,7 @@ class OkHttpGitHubApiClient(
         }
     }
 
-    override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
+    override suspend fun getTodayContributes(logger: Logger): TodayGitHubContributes {
         val todayPushedRepositoryNames = mutableSetOf<String>()
 
         var todayOpenIssueCount = 0
@@ -112,20 +118,24 @@ class OkHttpGitHubApiClient(
         return contributes
     }
 
-    private fun getTodayCommitCount(
+    private suspend fun getTodayCommitCount(
         todayPushedRepositoryNames: Set<String>,
         logger: Logger,
     ): Int {
-        var todayCommitCount = 0
-        for (repositoryName in todayPushedRepositoryNames) {
-            logger.log("Start Fetching commits of '$repositoryName'")
+        return withContext(dispatcher) {
+            val repositoryFetchJobs =
+                todayPushedRepositoryNames.map { repositoryName ->
+                    async {
+                        logger.log("Start Fetching commits of '$repositoryName'")
+                        val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
+                        logger.log("today's '$repositoryName' commit count: ${todayRepoCommits.size}")
 
-            val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
+                        todayRepoCommits.size
+                    }
+                }
 
-            todayCommitCount += todayRepoCommits.size
-            logger.log("today's '$repositoryName' commit count: ${todayRepoCommits.size}")
+            repositoryFetchJobs.awaitAll().sum()
         }
-        return todayCommitCount
     }
 
     private fun logContributes(
@@ -158,7 +168,6 @@ class OkHttpGitHubApiClient(
                 page++
             }
         }
-
         if (page == COMMIT_FETCH_MAX_PAGE) logger.log("Commit Fetch Page is over the limit: $COMMIT_FETCH_MAX_PAGE")
 
         return todayCommits
@@ -234,7 +243,7 @@ class OkHttpGitHubApiClient(
     }
 }
 
-fun main() {
+suspend fun main() {
     val client =
         OkHttpGitHubApiClient(
             username = System.getenv("GITHUB_USERNAME"),

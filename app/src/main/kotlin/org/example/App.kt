@@ -5,6 +5,7 @@ package org.example
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
+import kotlinx.coroutines.runBlocking
 import org.example.dto.HandlerInput
 import org.example.dto.HandlerOutput
 import org.example.github.GitHubApiClient
@@ -44,20 +45,27 @@ class App(
         // get today GitHub Contributes
         val todayGitHubContributes =
             try {
-                gitHubApiClient.getTodayContributes(logger = lambdaLoggerAdapter)
+                runBlocking { gitHubApiClient.getTodayContributes(logger = lambdaLoggerAdapter) }
             } catch (e: Exception) {
-                messenger.sendMessage(
-                    text = "Failed to get today's GitHub Contributes. Error Message: ${e.message}",
-                    logger = lambdaLoggerAdapter,
-                )
-
-                return HandlerOutput(message = "failed.", errorMessage = e.message)
+                return handleGitHubContributesError(e, lambdaLoggerAdapter)
             }
 
         // send message
         messenger.sendGitHubContributesMessage(contributes = todayGitHubContributes, logger = lambdaLoggerAdapter)
 
         return HandlerOutput(message = "success.", contributes = todayGitHubContributes)
+    }
+
+    private fun handleGitHubContributesError(
+        e: Exception,
+        lambdaLoggerAdapter: LambdaLoggerAdapter,
+    ): HandlerOutput {
+        messenger.sendMessage(
+            text = "Failed to get today's GitHub Contributes. Error Message: ${e.message}",
+            logger = lambdaLoggerAdapter,
+        )
+
+        return HandlerOutput(message = "failed.", errorMessage = e.message)
     }
 
     private fun validateSeoulTimezone() {

@@ -34,5 +34,6 @@
   - [x] repository 생성시 집계
   - [x] fork 시 집계
 - [x] 커밋 메시지도 deserialize 대상에 추가
+- [x] repository 별로 조회 시 병렬로 조회하여 속도 개선 (coroutines)
 - [ ] 테스트 코드 추가
 - [ ] CI시 배포할 파일명 환경변수로 분리

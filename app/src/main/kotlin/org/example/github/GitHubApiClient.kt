@@ -16,5 +16,5 @@ abstract class GitHubApiClient(
         const val COMMIT_PER_PAGE = 30
     }
 
-    abstract fun getTodayContributes(logger: Logger): TodayGitHubContributes
+    abstract suspend fun getTodayContributes(logger: Logger): TodayGitHubContributes
 }
