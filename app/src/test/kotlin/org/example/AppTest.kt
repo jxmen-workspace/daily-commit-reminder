@@ -24,7 +24,7 @@ class AppTest {
 
         val gitHubApiClient =
             object : GitHubApiClient(username = "dummy", token = "dummy") {
-                override fun getTodayContributes(logger: Logger): TodayGitHubContributes {
+                override suspend fun getTodayContributes(logger: Logger): TodayGitHubContributes {
                     return createTodayGitHubContributes
                 }
             }
