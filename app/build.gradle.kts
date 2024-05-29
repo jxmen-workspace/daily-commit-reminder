@@ -31,6 +31,7 @@ val telegramBotVersion = "6.9.7.1"
 val okHttpVersion = "4.12.0"
 val gsonVersion = "2.11.0"
 val kotestVersion = "4.6.0"
+val coroutineVersion = "1.5.2"
 
 dependencies {
     // This dependency is used by the application.
@@ -41,6 +42,7 @@ dependencies {
     implementation("org.telegram:telegrambots:$telegramBotVersion")
     implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
 
     // Use the Kotlin JUnit 5 integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
