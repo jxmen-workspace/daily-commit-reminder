@@ -124,11 +124,11 @@ class OkHttpGitHubApiClient(
     ): Int {
         return withContext(dispatcher) {
             val repositoryFetchJobs =
-                todayPushedRepositoryNames.map { repositoryName ->
+                todayPushedRepositoryNames.map {
                     async {
-                        logger.log("Start Fetching commits of '$repositoryName'")
-                        val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
-                        logger.log("today's '$repositoryName' commit count: ${todayRepoCommits.size}")
+                        logger.log("Start Fetching commits of '$it'")
+                        val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(it, logger)
+                        logger.log("today's '$it' commit total count: ${todayRepoCommits.size}")
 
                         todayRepoCommits.size
                     }
@@ -147,6 +147,8 @@ class OkHttpGitHubApiClient(
         logger.log("today's pull request count: ${contributes.openPullRequests}")
         logger.log("today's create repository count: ${contributes.createRepository}")
         logger.log("today's fork count: ${contributes.fork}")
+
+        logger.log("today's contribute total: ${contributes.total}")
     }
 
     private fun getGitHubTodayRepoCommits(
@@ -157,10 +159,11 @@ class OkHttpGitHubApiClient(
         val todayCommits = mutableSetOf<GitHubCommit>()
 
         while (page < COMMIT_FETCH_MAX_PAGE) {
-            logger.log("Fetching commits of '$repositoryName' page: $page")
+            logger.log("Fetching commits of '$repositoryName' (page=$page)")
             val response: String? = fetchUserCommits(repositoryName = repositoryName, page = page)
             val todayCommitsFromResponse = deserializeToCommits(response).filter { it.isToday() }
             todayCommits.addAll(todayCommitsFromResponse)
+            logger.log("today's '$repositoryName' commit count: ${todayCommitsFromResponse.size} (page=$page)")
 
             if (todayCommitsFromResponse.size < COMMIT_PER_PAGE) {
                 break
