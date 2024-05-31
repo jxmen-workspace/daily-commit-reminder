@@ -13,6 +13,7 @@ import org.example.github.OkHttpGitHubApiClient
 import org.example.messenger.Messenger
 import org.example.messenger.TelegramMessenger
 import org.example.support.logger.LambdaLoggerAdapter
+import org.example.support.logger.Logger
 
 class RequiredEnvVarNotSetException(envVarName: String) : IllegalArgumentException("'$envVarName' is not set")
 
@@ -58,12 +59,13 @@ class App(
 
     private fun handleGitHubContributesError(
         e: Exception,
-        lambdaLoggerAdapter: LambdaLoggerAdapter,
+        logger: Logger,
     ): HandlerOutput {
         messenger.sendMessage(
             text = "Failed to get today's GitHub Contributes. Error Message: ${e.message}",
-            logger = lambdaLoggerAdapter,
+            logger = logger,
         )
+        logger.log("Failed to get today's GitHub Contributes. Stack Trace: ${e.stackTraceToString()}")
 
         return HandlerOutput(message = "failed.", errorMessage = e.message)
     }

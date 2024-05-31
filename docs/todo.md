@@ -37,3 +37,7 @@
 - [x] repository 별로 조회 시 병렬로 조회하여 속도 개선 (coroutines)
 - [ ] 테스트 코드 추가
 - [ ] CI시 배포할 파일명 환경변수로 분리
+- [ ] DeleteEvent이고 ref가 repository일 경우, 오늘 생성한 repository면 집계에서 제외
+- [ ] 10시 이후에도 커밋을 하지 않았다면 30분 간격으로 계속 보내기
+  - [ ] DB 연결 및 히스토리 저장
+- [ ] main branch 처음 push도 집계에 반영

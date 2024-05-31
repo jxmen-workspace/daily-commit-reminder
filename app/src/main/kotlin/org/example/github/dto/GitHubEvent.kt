@@ -11,6 +11,7 @@ data class GitHubEventPayloadCommit(
 enum class GitHubEventPayloadAction(val str: String) {
     Opened("opened"),
     Closed("closed"),
+    Started("started"),
     ;
 
     companion object {
