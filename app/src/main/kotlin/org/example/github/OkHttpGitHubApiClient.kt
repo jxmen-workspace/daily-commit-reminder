@@ -124,11 +124,11 @@ class OkHttpGitHubApiClient(
     ): Int {
         return withContext(dispatcher) {
             val repositoryFetchJobs =
-                todayPushedRepositoryNames.map {
+                todayPushedRepositoryNames.map { repositoryName ->
                     async {
-                        logger.log("Start Fetching commits of '$it'")
-                        val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(it, logger)
-                        logger.log("today's '$it' commit total count: ${todayRepoCommits.size}")
+                        logger.log("Start Fetching commits of '$repositoryName'")
+                        val todayRepoCommits: Set<GitHubCommit> = getGitHubTodayRepoCommits(repositoryName, logger)
+                        logger.log("today's '$repositoryName' commit total count: ${todayRepoCommits.size}")
 
                         todayRepoCommits.size
                     }
