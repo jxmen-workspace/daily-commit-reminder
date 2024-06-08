@@ -9,9 +9,10 @@ data class GitHubEventPayloadCommit(
 )
 
 enum class GitHubEventPayloadAction(val str: String) {
+    Created("created"),
     Opened("opened"),
-    Closed("closed"),
     Started("started"),
+    Closed("closed"),
     ;
 
     companion object {
@@ -73,6 +74,7 @@ enum class GitHubEventType {
     DeleteEvent,
     WatchEvent,
     ForkEvent,
+    IssueCommentEvent,
 }
 
 data class GitHubEvent(
