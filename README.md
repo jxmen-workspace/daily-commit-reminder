@@ -1,4 +1,4 @@
-# daily-commit-notifier
+# daily-commit-reminder
 
 오늘 커밋을 했는지 여부를 밤마다 알림을 주는 AWS Lambda 함수
 
