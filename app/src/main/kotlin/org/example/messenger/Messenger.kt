@@ -15,4 +15,9 @@ interface Messenger {
         logger: Logger,
         now: LocalDateTime = LocalDateTime.now(),
     )
+
+    fun sendErrorMessage(
+        error: Exception,
+        logger: Logger,
+    )
 }

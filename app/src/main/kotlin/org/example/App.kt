@@ -48,7 +48,9 @@ class App(
         // get today GitHub Contributes
         val todayGitHubContributes =
             try {
-                runBlocking { gitHubApiClient.getTodayContributes(logger = lambdaLoggerAdapter) }
+                runBlocking {
+                    gitHubApiClient.getTodayContributes(logger = lambdaLoggerAdapter)
+                }
             } catch (e: Exception) {
                 return handleGitHubContributesError(e, lambdaLoggerAdapter)
             }
@@ -63,11 +65,7 @@ class App(
         e: Exception,
         logger: Logger,
     ): HandlerOutput {
-        messenger.sendMessage(
-            text = "Failed to get today's GitHub Contributes.\nError Message: ${e.message}",
-            logger = logger,
-        )
-        logger.log("Failed to get today's GitHub Contributes. Stack Trace: ${e.stackTraceToString()}")
+        messenger.sendErrorMessage(error = e, logger = logger)
 
         return HandlerOutput(message = "failed.", errorMessage = e.message)
     }
