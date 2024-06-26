@@ -12,6 +12,7 @@ import org.example.github.GitHubApiClient
 import org.example.github.OkHttpGitHubApiClient
 import org.example.messenger.Messenger
 import org.example.messenger.TelegramMessenger
+import org.example.support.logger.ConsoleLoggerLambdaContext
 import org.example.support.logger.LambdaLoggerAdapter
 import org.example.support.logger.Logger
 
