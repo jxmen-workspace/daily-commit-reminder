@@ -14,14 +14,13 @@ class TelegramMessenger(
     private val botUsername: String,
     private val chatId: String, // 메시지를 보낼 채팅방 ID
     private val logger: Logger = ConsoleLogger(),
-) : TelegramLongPollingBot(botToken), Messenger {
+) : TelegramLongPollingBot(botToken),
+    Messenger {
     companion object {
         val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 
-    override fun getBotUsername(): String {
-        return botUsername
-    }
+    override fun getBotUsername(): String = botUsername
 
     override fun onUpdateReceived(update: Update) {
         val message = update.message
@@ -34,9 +33,7 @@ class TelegramMessenger(
         text: String,
         logger: Logger,
     ) {
-        logger.log("send telegram message to: '$chatId', message: '$text'")
-        sendMessageTo(chatId, text)
-        logger.log("telegram message send completed.")
+        sendMessageTo(chatId, text, logger)
     }
 
     override fun sendGitHubContributesMessage(
@@ -75,15 +72,28 @@ class TelegramMessenger(
                 }
             }
 
-        logger.log("send telegram github contributes message to: '$chatId'")
-        sendMessageTo(chatId, message)
-        logger.log("telegram github contributes message send completed to: '$chatId'")
+        sendMessageTo(chatId = chatId, message = message, logger = logger)
+    }
+
+    override fun sendErrorMessage(
+        error: Exception,
+        logger: Logger,
+    ) {
+        sendMessageTo(
+            chatId = chatId,
+            message = "Failed to get today's GitHub Contributes.\nError Message: ${error.message}",
+            logger = logger,
+        )
+        logger.log("Failed to get today's GitHub Contributes. Stack Trace: ${error.stackTraceToString()}")
     }
 
     private fun sendMessageTo(
         chatId: String,
-        text: String,
+        message: String,
+        logger: Logger,
     ) {
-        execute(SendMessage(chatId, text))
+        logger.log("send telegram message to: '$chatId'")
+        execute(SendMessage(chatId, message))
+        logger.log("telegram message send completed to: '$chatId'")
     }
 }
