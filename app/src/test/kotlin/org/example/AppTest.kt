@@ -8,6 +8,7 @@ import org.example.dto.HandlerOutput
 import org.example.github.GitHubApiClient
 import org.example.github.dto.TodayGitHubContributes
 import org.example.messenger.Messenger
+import org.example.support.logger.ConsoleLoggerLambdaContext
 import org.example.support.logger.Logger
 import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDateTime
@@ -24,9 +25,7 @@ class AppTest {
 
         val gitHubApiClient =
             object : GitHubApiClient(username = "dummy", token = "dummy") {
-                override suspend fun getTodayContributes(logger: Logger): TodayGitHubContributes {
-                    return createTodayGitHubContributes
-                }
+                override suspend fun getTodayContributes(logger: Logger): TodayGitHubContributes = createTodayGitHubContributes
             }
 
         app = App(messenger = dummyMessenger, gitHubApiClient = gitHubApiClient)
@@ -71,6 +70,13 @@ class AppTest {
                 contributes: TodayGitHubContributes,
                 logger: Logger,
                 now: LocalDateTime,
+            ) {
+                // do nothing
+            }
+
+            override fun sendErrorMessage(
+                error: Exception,
+                logger: Logger,
             ) {
                 // do nothing
             }
