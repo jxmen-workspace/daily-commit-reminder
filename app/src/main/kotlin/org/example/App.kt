@@ -15,7 +15,9 @@ import org.example.messenger.TelegramMessenger
 import org.example.support.logger.LambdaLoggerAdapter
 import org.example.support.logger.Logger
 
-class RequiredEnvVarNotSetException(envVarName: String) : IllegalArgumentException("'$envVarName' is not set")
+class RequiredEnvVarNotSetException(
+    envVarName: String,
+) : IllegalArgumentException("'$envVarName' is not set")
 
 class App(
     private val messenger: Messenger =
@@ -62,7 +64,7 @@ class App(
         logger: Logger,
     ): HandlerOutput {
         messenger.sendMessage(
-            text = "Failed to get today's GitHub Contributes. Error Message: ${e.message}",
+            text = "Failed to get today's GitHub Contributes.\nError Message: ${e.message}",
             logger = logger,
         )
         logger.log("Failed to get today's GitHub Contributes. Stack Trace: ${e.stackTraceToString()}")
