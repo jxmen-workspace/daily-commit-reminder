@@ -8,36 +8,42 @@ data class GitHubEventPayloadCommit(
     val message: String,
 )
 
-enum class GitHubEventPayloadAction(val str: String) {
+enum class GitHubEventPayloadAction(
+    val str: String,
+) {
     Created("created"),
     Opened("opened"),
     Started("started"),
     Closed("closed"),
+    Reopened("reopened"),
     ;
 
     companion object {
-        fun findByName(name: String?): GitHubEventPayloadAction {
-            return entries.find { it.str == name }
+        fun findByName(name: String?): GitHubEventPayloadAction =
+            entries.find { it.str == name }
                 ?: error("해당하는 값이 없습니다. value: $name")
-        }
     }
 }
 
-enum class GtiHubEventPayloadRefType(val str: String) {
+enum class GtiHubEventPayloadRefType(
+    val str: String,
+) {
     Branch("branch"),
     Repository("repository"),
     Tag("tag"),
     ;
 
     companion object {
-        fun findByName(value: String): GtiHubEventPayloadRefType {
-            return entries.find { it.str == value }
+        fun findByName(value: String): GtiHubEventPayloadRefType =
+            entries.find { it.str == value }
                 ?: error("해당하는 값이 없습니다. value: $value")
-        }
     }
 }
 
-data class GitHubEventPayloadPullRequest(val title: String, val state: String)
+data class GitHubEventPayloadPullRequest(
+    val title: String,
+    val state: String,
+)
 
 data class GitHubEventPayload(
     val commits: List<GitHubEventPayloadCommit>?,
@@ -45,9 +51,7 @@ data class GitHubEventPayload(
     @SerializedName("ref_type") val refType: GtiHubEventPayloadRefType?,
     @SerializedName("pull_request") val pullReqeust: GitHubEventPayloadPullRequest? = null,
 ) {
-    fun isRepositoryRefType(): Boolean {
-        return refType == GtiHubEventPayloadRefType.Repository
-    }
+    fun isRepositoryRefType(): Boolean = refType == GtiHubEventPayloadRefType.Repository
 
     constructor(action: String) : this(
         action = GitHubEventPayloadAction.findByName(action),
@@ -130,34 +134,28 @@ data class GitHubEvent(
         return true
     }
 
-    fun isTodayPushEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && type == GitHubEventType.PushEvent
-    }
+    fun isTodayPushEvent(date: LocalDateTime = LocalDateTime.now()): Boolean = isToday(date) && type == GitHubEventType.PushEvent
 
-    fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && type == GitHubEventType.PullRequestEvent &&
+    fun isTodayOpenPullRequestEvent(date: LocalDateTime = LocalDateTime.now()): Boolean =
+        isToday(date) &&
+            type == GitHubEventType.PullRequestEvent &&
             payload?.let { it.action == GitHubEventPayloadAction.Opened } == true
-    }
 
-    fun isTodayOpenIssuesEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && type == GitHubEventType.IssuesEvent &&
+    fun isTodayOpenIssuesEvent(date: LocalDateTime = LocalDateTime.now()): Boolean =
+        isToday(date) &&
+            type == GitHubEventType.IssuesEvent &&
             payload?.let { it.action == GitHubEventPayloadAction.Opened } == true
-    }
 
-    fun getRepositoryName(): String? {
-        return when (type) {
+    fun getRepositoryName(): String? =
+        when (type) {
             GitHubEventType.PushEvent -> repo?.name
             else -> error("이벤트가 pushEvent type이 아니면 이 함수를 호출해서는 안됩니다. 타입: $type")
         }
-    }
 
-    fun isTodayCreateRepositoryEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) &&
+    fun isTodayCreateRepositoryEvent(date: LocalDateTime = LocalDateTime.now()): Boolean =
+        isToday(date) &&
             type == GitHubEventType.CreateEvent &&
             payload?.isRepositoryRefType() == true
-    }
 
-    fun isTodayForkEvent(date: LocalDateTime = LocalDateTime.now()): Boolean {
-        return isToday(date) && type == GitHubEventType.ForkEvent
-    }
+    fun isTodayForkEvent(date: LocalDateTime = LocalDateTime.now()): Boolean = isToday(date) && type == GitHubEventType.ForkEvent
 }
