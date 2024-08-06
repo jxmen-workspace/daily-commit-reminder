@@ -34,17 +34,17 @@ abstract class AbstractLambdaLoggerContext : Context {
  */
 class ConsoleLoggerLambdaContext : AbstractLambdaLoggerContext() {
     companion object {
-        val logger = ConsoleLogger()
+        val consoleLogger = ConsoleLogger()
     }
 
     override fun getLogger(): LambdaLogger =
         object : LambdaLogger {
             override fun log(message: String) {
-                logger.log(message)
+                consoleLogger.log(message)
             }
 
             override fun log(message: ByteArray) {
-                logger.log(message)
+                consoleLogger.log(message)
             }
         }
 }
