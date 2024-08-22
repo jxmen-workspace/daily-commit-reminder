@@ -16,6 +16,7 @@ enum class GitHubEventPayloadAction(
     Started("started"),
     Closed("closed"),
     Reopened("reopened"),
+    Published("published"),
     ;
 
     companion object {
@@ -79,6 +80,7 @@ enum class GitHubEventType {
     WatchEvent,
     ForkEvent,
     IssueCommentEvent,
+    ReleaseEvent,
 }
 
 data class GitHubEvent(
